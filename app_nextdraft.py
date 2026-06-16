@@ -40,15 +40,93 @@ def ir_para_cadastro_peladeiro():
 def ir_para_cadastro_parceiro():
     st.session_state["navegacao_radio"] = "🏢 Parceiros & Quadras"
 
-# 2. MENU LATERAL DE NAVEGAÇÃO
+def tela_login():
+    st.subheader("🔑 Acesse sua Conta")
+    
+    aba_atleta, aba_admin = st.tabs(["🏃 Atleta / Peladeiro", "🔐 Administrador"])
+    
+    with aba_atleta:
+        email = st.text_input("E-mail:", key="login_email")
+        senha = st.text_input("Senha:", type="password", key="login_senha")
+        
+        if st.button("Entrar como Jogador"):
+            if email and senha:
+                try:
+                    conn = criar_conexao()
+                    cursor = conn.cursor()
+                    
+                    # Busca primeiro na tabela de atletas
+                    cursor.execute("SELECT id_atleta, senha, nome, 'atleta' as tipo FROM atletas WHERE email = %s", (email,))
+                    usuario = cursor.fetchone()
+                    
+                    # Se não achar, busca na tabela de peladeiros
+                    if not usuario:
+                        cursor.execute("SELECT id_peladeiro, senha, nome, 'peladeiro' as tipo FROM peladeiros WHERE email = %s", (email,))
+                        usuario = cursor.fetchone()
+                        
+                    cursor.close()
+                    conn.close()
+                    
+                    if usuario and verificar_senha(senha, usuario[1]):
+                        st.session_state["logado"] = True
+                        st.session_state["user_id"] = usuario[0]
+                        st.session_state["user_nome"] = usuario[2]
+                        st.session_state["user_tipo"] = usuario[3]
+                        st.success(f"Bem-vindo de volta, {usuario[2]}!")
+                        st.rerun() # Atualiza a tela já logado
+                    else:
+                        st.error("E-mail ou senha incorretos.")
+                except Exception as e:
+                    st.error(f"Erro ao conectar: {e}")
+            else:
+                st.warning("Preencha todos os campos.")
+
+    with aba_admin:
+        admin_email = st.text_input("E-mail do Admin:", key="login_admin_email")
+        admin_senha = st.text_input("Senha do Admin:", type="password", key="login_admin_senha")
+        
+        if st.button("Entrar no Painel Master"):
+            # Validação segura usando o seu arquivo .env
+            if admin_email == os.getenv("ADMIN_USER") and admin_senha == os.getenv("ADMIN_PASS"):
+                st.session_state["logado"] = True
+                st.session_state["user_nome"] = "Diretoria Master"
+                st.session_state["user_tipo"] = "admin"
+                st.success("Acesso Administrativo Autorizado!")
+                st.rerun()
+            else:
+                st.error("Credenciais administrativas inválidas.")
+
+# 2. MENU LATERAL DE NAVEGAÇÃO (DIFERENCIADO POR LOGIN)
 st.sidebar.title("⚽ NextDraft v2")
+
+# Cria a variável de login caso ela não exista na memória ainda
+if "logado" not in st.session_state:
+    st.session_state["logado"] = False
+
 st.sidebar.markdown("---")
 
-menu = st.sidebar.radio(
-    "Navegue pelo App:",
-    ["🏠 Início", "🏃 Área do Atleta", "🍻 Comunidade Peladeiro", "🏢 Parceiros & Quadras", "🔐 Painel Admin"],
-    key="navegacao_radio"
-)
+# Se NÃO estiver logado, mostra opções públicas + tela de login
+if not st.session_state["logado"]:
+    menu = st.sidebar.radio(
+        "Navegue pelo App:",
+        ["🏠 Início", "🔑 Entrar no App"],
+        key="navegacao_radio"
+    )
+# Se ESTIVER logado, libera o ecossistema completo de acordo com o perfil
+else:
+    st.sidebar.write(f"Olá, **{st.session_state['user_nome']}**!")
+    
+    # Botão de Logout elegante para o usuário conseguir sair
+    if st.sidebar.button("🚪 Sair / Logoff"):
+        st.session_state["logado"] = False
+        st.session_state["user_tipo"] = None
+        st.rerun()
+        
+    menu = st.sidebar.radio(
+        "Navegue pelo App:",
+        ["🏠 Início", "🏃 Área do Atleta", "🍻 Comunidade Peladeiro", "🏢 Parceiros & Quadras", "🔐 Painel Admin"],
+        key="navegacao_radio"
+    )
 
 # -----------------------------------------------------------------
 # 🏠 TELA INICIAL
@@ -76,6 +154,10 @@ if menu == "🏠 Início":
 # -----------------------------------------------------------------
 # 🏃 ÁREA DO ATLETA (Cartinhas FIFA e Inscrição)
 # -----------------------------------------------------------------
+elif menu == "🔑 Entrar no App":
+    st.title("Acesso ao Sistema")
+    tela_login()
+
 elif menu == "🏃 Área do Atleta":
     st.title("🏃 Painel de Atletas de Alto Rendimento")
     aba_atleta = st.tabs(["🔎 Buscar Atletas", "📝 Cadastrar Novo Atleta"])
@@ -164,20 +246,45 @@ elif menu == "🏃 Área do Atleta":
                 try:
                     conn = criar_conexao()
                     cursor = conn.cursor()
-                    # CRIPTOGRAFIA ATIVADA NO CADASTRO:
-                    senha_segura = criptografar_senha(senha)
-                    query_atleta = "INSERT INTO atletas (nome, email, senha, data_nascimento, posicao_principal, perna_preferida, altura_cm, peso_kg, cidade, estado, autorizacao_pais, id_parceiro_treinador) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" if 'city' in pd.read_sql("DESCRIBE atletas", conn)['Field'].values else "INSERT INTO atletas (nome, email, senha, data_nascimento, posicao_principal, perna_preferida, altura_cm, peso_kg, cidade, estado, autorizacao_pais, id_parceiro_treinador) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                     
-                    cursor.execute(query_atleta, (nome, email, senha_segura, data_nasc, posicao, perna, altura, peso, cidade, estado, autorizacao, id_esc_final))
-                    id_novo_atleta = cursor.lastrowid
-                    query_hist = "INSERT INTO historico_desempenho (id_atleta, periodo, nota_velocidade, nota_passe, nota_fisico, nota_finalizacao) VALUES (%s, 'Temporada Inicial', 60, 60, 60, 60)"
-                    cursor.execute(query_hist, (id_novo_atleta,))
-                    conn.commit()
-                    cursor.close()
-                    conn.close()
-                    st.success(f"Atleta {nome} cadastrado com segurança!")
+                    # 🔍 1. VALIDAÇÃO DE DATA QUALITY: O e-mail já existe?
+                    cursor.execute("SELECT id_atleta FROM atletas WHERE email = %s", (email,))
+                    email_existe = cursor.fetchone()
+                    
+                    if email_existe:
+                        st.error("⚠️ Este e-mail já está cadastrado no sistema! Use outro ou faça login.")
+                        cursor.close()
+                        conn.close()
+                    else:
+                        # 2. SE NÃO EXISTIR, PROCEGUE COM O CADASTRO NORMALMENTE:
+                        senha_segura = criptografar_senha(senha)
+                        
+                        query_atleta = """
+                            INSERT INTO atletas (nome, email, senha, data_nascimento, posicao_principal, 
+                                                perna_preferida, altura_cm, peso_kg, cidade, estado, 
+                                                autorizacao_pais, id_parceiro_treinador) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
+                        cursor.execute(query_atleta, (nome, email, senha_segura, data_nasc, posicao, perna, altura, peso, cidade, estado, autorizacao, id_esc_final))
+                        
+                        id_novo_atleta = cursor.lastrowid
+                        
+                        query_hist = """
+                            INSERT INTO historico_desempenho (id_atleta, periodo, nota_velocidade, nota_passe, 
+                                                             nota_fisico, nota_finalizacao, gols_marcados) 
+                            VALUES (%s, 'Temporada Inicial', 60, 60, 60, 60, 0)
+                        """
+                        cursor.execute(query_hist, (id_novo_atleta,))
+                        
+                        conn.commit()
+                        cursor.close()
+                        conn.close()
+                        
+                        st.success(f"Atleta {nome} cadastrado com sucesso!")
+                        st.balloons()
+                        
                 except Exception as e:
-                    st.error(f"Erro: {e}")
+                    st.error(f"Erro ao salvar no banco de dados: {e}")
 
 # -----------------------------------------------------------------
 # 🍻 COMUNIDADE PELADEIRO (Confirmação de Presença)
@@ -406,11 +513,13 @@ elif menu == "🏢 Parceiros & Quadras":
 # 🔐 PAINEL ADMIN MASTER (Métricas Gerais e Login Seguro)
 # -----------------------------------------------------------------
 elif menu == "🔐 Painel Admin":
-    st.title("🔐 Login de Administrador Geral")
-    admin_email = st.text_input("E-mail do Administrador:")
-    admin_senha = st.text_input("Senha Secreta:", type="password")
+    st.title("🔐 Painel Administrativo & Analytics")
     
-    if st.button("Entrar no Panel Master") or st.session_state.get("admin_logado", False):
+    # 1. VERIFICAÇÃO DE LOGIN DE FORMA MAIS LIMPA
+    admin_email = st.text_input("E-mail do Administrador:", key="admin_email_input")
+    admin_senha = st.text_input("Senha Secreta:", type="password", key="admin_senha_input")
+    
+    if st.button("Entrar no Painel Master") or st.session_state.get("admin_logado", False):
         try:
             conn = criar_conexao()
             cursor = conn.cursor()
@@ -419,25 +528,127 @@ elif menu == "🔐 Painel Admin":
             cursor.close()
             conn.close()
             
-            # VERIFICAÇÃO CRIPTOGRÁFICA DO ADMIN
-            if resultado and (verificar_senha(admin_senha, resultado[0]) or st.session_state.get("admin_logado", False)):
+            if (admin_email == os.getenv("ADMIN_USER") and admin_senha == os.getenv("ADMIN_PASS")) or (resultado and verificar_senha(admin_senha, resultado[0])) or st.session_state.get("admin_logado", False):
                 st.session_state["admin_logado"] = True
-                st.success(f"Acessado como: Administrador Geral")
+                st.success("Acesso Autorizado! Carregando Analytics...")
                 st.markdown("---")
                 
+                # 2. BUSCA DOS DADOS PARA OS GRÁFICOS
                 conn = criar_conexao()
+                
+                # Queries de contagem (Métricas principais)
                 total_atletas = pd.read_sql("SELECT COUNT(*) AS total FROM atletas", conn)['total'][0]
                 total_peladeiros = pd.read_sql("SELECT COUNT(*) AS total FROM peladeiros", conn)['total'][0]
                 total_parceiros = pd.read_sql("SELECT COUNT(*) AS total FROM parceiros", conn)['total'][0]
-                faturamento_quadras = pd.read_sql("SELECT SUM(preco_hora) AS total FROM parceiros WHERE tipo_parceiro='quadra'", conn)['total'][0]
+                faturamento_quadras = pd.read_sql("SELECT SUM(preco_hora) AS total FROM parceiros WHERE tipo_parceiro='quadra'", conn)['total'][0] or 0.0
+                
+                # QUERY NOVA: Distribuição de Atletas por Posição (Para o Gráfico)
+                df_posicoes = pd.read_sql("SELECT posicao_principal, COUNT(*) as quantidade FROM atletas GROUP BY posicao_principal", conn)
+                
                 conn.close()
                 
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Atletas Cadastrados", total_atletas)
-                m2.metric("Peladeiros Ativos", total_peladeiros)
-                m3.metric("Parceiros Totais", total_parceiros)
-                m4.metric("Potencial de Quadras", f"R$ {faturamento_quadras or 0.0:.2f}")
+                # 3. MÉTRICAS EM LINHA
+                m1, m2 = st.columns(2)
+                m1.metric("🏃 Atletas Base", total_atletas)
+                m2.metric("🍻 Peladeiros", total_peladeiros)
+                
+                m3, m4 = st.columns(2)
+                m3.metric("🏢 Parceiros", total_parceiros)
+                m4.metric("💰 Potencial Quadras", f"R$ {faturamento_quadras:.2f}")
+                
+                st.markdown("### 📊 Inteligência de Mercado (Scouting)")
+                
+                # 4. CRIANDO UM GRÁFICO PROFISSIONAL E RESPONSIVO (PLOTLY)
+                import plotly.express as px
+                
+                if not df_posicoes.empty:
+                    df_posicoes['posicao_principal'] = df_posicoes['posicao_principal'].str.title()
+                    
+                    fig = px.bar(
+                        df_posicoes, 
+                        x='quantidade', 
+                        y='posicao_principal', 
+                        orientation='h',
+                        title="Déficit ou Superávit de Atletas por Posição",
+                        labels={'quantidade': 'Nº de Jogadores', 'posicao_principal': 'Posição'},
+                        color='quantidade',
+                        color_continuous_scale='Greens'
+                    )
+                    
+                    fig.update_layout(
+                        margin=dict(l=20, r=20, t=40, b=20),
+                        showlegend=False,
+                        height=350
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Cadastre os primeiros atletas para visualizar os gráficos de distribuição.")
+                
+                # -------------------------------------------------------------
+                # 🔍 SEÇÃO CORRIGIDA: SCOUTING DENTRO DO ACESSO PERMITIDO
+                # -------------------------------------------------------------
+                st.markdown("---")
+                st.markdown("### 🕵️‍♂️ Ferramenta de Scouting (Busca Avançada de Atletas)")
+                st.write("Filtre os atletas da base com base em características físicas, táticas e de desempenho:")
+                
+                conn = criar_conexao()
+                query_scout = """
+                    SELECT 
+                        a.nome, a.posicao_principal, a.perna_preferida, a.altura_cm, a.peso_kg, a.cidade, a.estado,
+                        h.nota_velocidade, h.nota_passe, h.nota_fisico, h.nota_finalizacao, h.gols_marcados
+                    FROM atletas a
+                    LEFT JOIN historico_desempenho h ON a.id_atleta = h.id_atleta
+                """
+                df_scout = pd.read_sql(query_scout, conn)
+                conn.close()
+                
+                if not df_scout.empty:
+                    f1, f2 = st.columns(2)
+                    with f1:
+                        todas_posicoes = ["Todos"] + list(df_scout['posicao_principal'].unique())
+                        filtro_posicao = st.selectbox("Filtrar por Posição:", todas_posicoes)
+                    with f2:
+                        todas_pernas = ["Todas"] + list(df_scout['perna_preferida'].unique())
+                        filtro_perna = st.selectbox("Perna Preferida:", todas_pernas)
+                        
+                    f3, f4 = st.columns(2)
+                    with f3:
+                        nota_min_vel = st.slider("Nota Mínima de Velocidade:", 0, 100, 50)
+                    with f4:
+                        nota_min_pas = st.slider("Nota Mínima de Passe:", 0, 100, 50)
+                    
+                    df_filtrado = df_scout.copy()
+                    
+                    if filtro_posicao != "Todos":
+                        df_filtrado = df_filtrado[df_filtrado['posicao_principal'] == filtro_posicao]
+                        
+                    if filtro_perna != "Todas":
+                        df_filtrado = df_filtrado[df_filtrado['perna_preferida'] == filtro_perna]
+                        
+                    df_filtrado = df_filtrado[df_filtrado['nota_velocidade'] >= nota_min_vel]
+                    df_filtrado = df_filtrado[df_filtrado['nota_passe'] >= nota_min_pas]
+                    
+                    st.markdown(f"**🎯 Jogadores Encontrados:** {len(df_filtrado)}")
+                    
+                    if not df_filtrado.empty:
+                        df_exibicao = df_filtrado.rename(columns={
+                            'nome': 'Nome',
+                            'posicao_principal': 'Posição',
+                            'perna_preferida': 'Perna',
+                            'altura_cm': 'Alt (cm)',
+                            'peso_kg': 'Peso (kg)',
+                            'nota_velocidade': 'Velocidade',
+                            'nota_passe': 'Passe',
+                            'gols_marcados': 'Gols'
+                        })
+                        st.dataframe(df_exibicao[['Nome', 'Posição', 'Perna', 'Velocidade', 'Passe', 'Gols']], use_container_width=True)
+                    else:
+                        st.info("Nenhum atleta atende aos critérios dos filtros selecionados.")
+                else:
+                    st.info("Cadastre atletas no sistema para liberar a ferramenta de busca de olheiros.")
+                    
             else:
-                st.error("Acesso Negado.")
+                st.error("Acesso Negado. Verifique suas credenciais.")
         except Exception as e:
-            st.error(f"Erro: {e}")
+            st.error(f"Erro ao carregar o painel: {e}")
