@@ -12,7 +12,8 @@ import datetime as dt_modulo
 from datetime import datetime, timedelta, date
 from streamlit_option_menu import option_menu
 from sqlalchemy import create_engine
-
+import psycopg2
+import psycopg2.extras
 
 # 1. CONFIGURAÇÃO DA PÁGINA (APENAS UMA VEZ E NO TOPO!)
 # ==========================================
@@ -106,10 +107,10 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Isso conecta usando a URL que você colocou nos Secrets
-    db_url = st.secrets["DATABASE_URL"]
-    engine = create_engine(db_url)
-    return engine
+    # Pega a URI completa do PlanetScale
+    conn = psycopg2.connect(st.secrets["DATABASE_URL"])
+    return conn
+
 
 def tem_permissao(nivel_requerido):
     perfil = st.session_state.get("usuario_perfil")
