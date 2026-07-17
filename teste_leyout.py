@@ -107,14 +107,15 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Vamos trocar o 'verify-full' por 'require' 
-    # Isso ainda usa SSL, mas não trava se não encontrar o arquivo de certificado local
-    db_url = st.secrets["DATABASE_URL"]
-    # Se a URL contiver 'sslmode=verify-full', vamos substituir por 'sslmode=require'
-    db_url = db_url.replace("sslmode=verify-full", "sslmode=require")
-    
-    conn = psycopg2.connect(db_url)
-    return conn
+    # Vamos garantir que ele acesse os segredos de forma direta e segura
+    try:
+        db_url = st.secrets["DATABASE_URL"]
+        # Usamos o parâmetro sslmode dentro da conexão para evitar o erro de certificado
+        conn = psycopg2.connect(db_url, sslmode='require')
+        return conn
+    except KeyError:
+        st.error("A chave DATABASE_URL não foi encontrada nos Segredos do Streamlit.")
+        st.stop()
 
 def executar_consulta(sql):
     conn = criar_conexao() # A função que você já tem
