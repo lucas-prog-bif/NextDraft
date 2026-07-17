@@ -111,6 +111,19 @@ def criar_conexao():
     conn = psycopg2.connect(st.secrets["DATABASE_URL"])
     return conn
 
+def executar_consulta(sql):
+    conn = criar_conexao() # A função que você já tem
+    
+    # É AQUI que você coloca a linha:
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    
+    cursor.execute(sql)
+    resultados = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return resultados
+
 
 def tem_permissao(nivel_requerido):
     perfil = st.session_state.get("usuario_perfil")
