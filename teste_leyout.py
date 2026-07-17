@@ -107,16 +107,19 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Isso vai listar exatamente o que o Streamlit está lendo
-    st.write("Segredos encontrados:", list(st.secrets.keys()))
+    # Pega a URL completa
+    full_url = st.secrets["DATABASE_URL"]
     
-    if "DATABASE_URL" in st.secrets:
-        db_url = st.secrets["DATABASE_URL"]
-        conn = psycopg2.connect(db_url, sslmode='require')
-        return conn
+    # Remove qualquer parâmetro de SSL da string, pois vamos definir manualmente
+    # Isso garante que não haja conflitos
+    if "?" in full_url:
+        db_url = full_url.split("?")[0]
     else:
-        st.error("DATABASE_URL não está na lista acima!")
-        st.stop()
+        db_url = full_url
+        
+    # Conecta forçando o modo require
+    conn = psycopg2.connect(db_url, sslmode='require')
+    return conn
 
 def executar_consulta(sql):
     conn = criar_conexao() # A função que você já tem
