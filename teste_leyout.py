@@ -224,7 +224,7 @@ def exibir_aba_quadras():
         
         # 2. Verifica Pagamento (A barreira)
         conn = criar_conexao()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("SELECT data_expiracao FROM usuarios WHERE id_usuario = %s", (st.session_state["usuario_id"],))
         user_data = cursor.fetchone()
         cursor.close()
