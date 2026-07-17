@@ -107,8 +107,13 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Pega a URI completa do PlanetScale
-    conn = psycopg2.connect(st.secrets["DATABASE_URL"])
+    # Vamos trocar o 'verify-full' por 'require' 
+    # Isso ainda usa SSL, mas não trava se não encontrar o arquivo de certificado local
+    db_url = st.secrets["DATABASE_URL"]
+    # Se a URL contiver 'sslmode=verify-full', vamos substituir por 'sslmode=require'
+    db_url = db_url.replace("sslmode=verify-full", "sslmode=require")
+    
+    conn = psycopg2.connect(db_url)
     return conn
 
 def executar_consulta(sql):
