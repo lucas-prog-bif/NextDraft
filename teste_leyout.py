@@ -107,14 +107,15 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Vamos garantir que ele acesse os segredos de forma direta e segura
-    try:
+    # Isso vai listar exatamente o que o Streamlit está lendo
+    st.write("Segredos encontrados:", list(st.secrets.keys()))
+    
+    if "DATABASE_URL" in st.secrets:
         db_url = st.secrets["DATABASE_URL"]
-        # Usamos o parâmetro sslmode dentro da conexão para evitar o erro de certificado
         conn = psycopg2.connect(db_url, sslmode='require')
         return conn
-    except KeyError:
-        st.error("A chave DATABASE_URL não foi encontrada nos Segredos do Streamlit.")
+    else:
+        st.error("DATABASE_URL não está na lista acima!")
         st.stop()
 
 def executar_consulta(sql):
