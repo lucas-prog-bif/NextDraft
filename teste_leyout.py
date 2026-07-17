@@ -107,18 +107,13 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    # Pega a URL completa
-    full_url = st.secrets["DATABASE_URL"]
+    # Pegue a URL exatamente como ela está nos Segredos
+    db_url = st.secrets["DATABASE_URL"]
     
-    # Remove qualquer parâmetro de SSL da string, pois vamos definir manualmente
-    # Isso garante que não haja conflitos
-    if "?" in full_url:
-        db_url = full_url.split("?")[0]
-    else:
-        db_url = full_url
-        
-    # Conecta forçando o modo require
-    conn = psycopg2.connect(db_url, sslmode='require')
+    # Em vez de tentar alterar a string ou forçar 'require', 
+    # deixe o psycopg2 usar as instruções que já estão na sua DATABASE_URL
+    # (que já inclui sslmode=verify-full e sslrootcert=system)
+    conn = psycopg2.connect(db_url)
     return conn
 
 def executar_consulta(sql):
@@ -1105,7 +1100,7 @@ if not st.session_state["logado"]:
         senha_login = st.text_input("Senha:", type="password", key="login_senha")
         if st.button("Entrar", use_container_width=True):
             conn = criar_conexao()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             # CORRIGIDO: de 'senate_login' para 'senha_login'
             cursor.execute("SELECT * FROM usuarios WHERE email = %s AND senha = %s", (email_login, senha_login))
             usuario = cursor.fetchone()
