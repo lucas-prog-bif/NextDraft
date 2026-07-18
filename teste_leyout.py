@@ -107,13 +107,17 @@ st.markdown(
 # 3. FUNÇÕES UTILITÁRIAS
 # ==========================================
 def criar_conexao():
-    return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME"),
-        ssl_ca="/etc/ssl/certs/ca-certificates.crt"
-    )
+    # Agora estamos buscando as chaves que você configurou no Streamlit
+    host = st.secrets["DB_HOST"]
+    user = st.secrets["DB_USER"]
+    password = st.secrets["DB_PASSWORD"]
+    database = st.secrets["DB_NAME"]
+    
+    # Monte a string de conexão usando essas variáveis
+    db_url = st.secrets["DATABASE_URL"]
+    conn = psycopg2.connect(db_url)
+    return conn
+    # ... resto do seu código de conexão
 
 def executar_consulta(sql):
     conn = criar_conexao() # A função que você já tem
@@ -129,6 +133,8 @@ def executar_consulta(sql):
     return resultados
 
 DB_URL = ["DATABASE_URL"]
+
+
 def recriar_estrutura():
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
