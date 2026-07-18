@@ -14,6 +14,7 @@ from streamlit_option_menu import option_menu
 from sqlalchemy import create_engine
 import psycopg2
 import psycopg2.extras
+from psycopg2.extras import RealDictCursor
 
 # 1. CONFIGURAÇÃO DA PÁGINA (APENAS UMA VEZ E NO TOPO!)
 # ==========================================
