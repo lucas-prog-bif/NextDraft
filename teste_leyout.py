@@ -1321,10 +1321,12 @@ if not st.session_state["logado"]:
             # CORRIGIDO: de 'senate_login' para 'senha_login'
             cursor.execute("SELECT * FROM usuarios WHERE email = %s AND senha = %s", (email_login, senha_login))
             usuario = cursor.fetchone()
+
+            
             if usuario:
                 # Lógica para identificar Admin
-                eh_admin = (usuario["email"] == st.secrets["ADMIN_EMAIL"] and 
-                senha_login == st.secrets["ADMIN_SENHA"])
+                eh_admin = (usuario["email"] == st.secrets["ADMIN_EMAIL"])
+                
                 
                 st.session_state.update({
                     "logado": True, 
