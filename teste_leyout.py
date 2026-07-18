@@ -1323,7 +1323,8 @@ if not st.session_state["logado"]:
             usuario = cursor.fetchone()
             if usuario:
                 # Lógica para identificar Admin
-                eh_admin = (usuario["email"] == st.secrets["ADMIN_EMAIL"]) 
+                eh_admin = (usuario["email"] == st.secrets["ADMIN_EMAIL"] and 
+                senha_login == st.secrets["ADMIN_SENHA"])
                 
                 st.session_state.update({
                     "logado": True, 
