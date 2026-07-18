@@ -115,7 +115,7 @@ def criar_conexao():
     
     # Monte a string de conexão usando essas variáveis
     db_url = st.secrets["DATABASE_URL"]
-    conn = psycopg2.connect(db_url)
+    conn = psycopg2.connect(db_url, sslmode='require')
     return conn
     # ... resto do seu código de conexão
 
