@@ -1465,7 +1465,7 @@ if pagina_selecionada == "🏠 Home":
     parceiros_ativos = []
     try:
         conn = criar_conexao()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         hoje_str = datetime.now().strftime('%Y-%m-%d')
         # Ajuste a consulta se necessário para garantir que pega a logo
         cursor.execute("SELECT * FROM stories_parceiros WHERE status_anuncio = 'ativo' AND data_vencimento >= %s", [hoje_str])
