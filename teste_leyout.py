@@ -1067,7 +1067,7 @@ def exibir_perfil():
             <img src="{foto_avatar_src}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background-color: #222;">
         </div>
         <div style="text-align: center; margin: 20px 0;">
-            <div style="font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">{nome_usuario_atual.split()[0] if nome_usuario_atual else "JOGADOR"}</div>
+            <div style="font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">{nome_usuario_atual.split()[0] if nome_usuario_atual else ""}</div>
             <div style="font-size: 11px; color: #888; margin-top: 3px;">📍 Verificado via App</div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid #222;">
