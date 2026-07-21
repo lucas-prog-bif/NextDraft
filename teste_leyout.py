@@ -24,6 +24,16 @@ st.set_page_config(
     layout="wide", 
     initial_sidebar_state="expanded" # linha da barra lateral
 )
+
+logo_url = "logo nextdraft.jpeg" # Coloque o mesmo link ou caminho da sua logo aqui
+
+st.markdown(
+    f"""
+    <link rel="shortcut icon" href="{logo_url}">
+    <link rel="apple-touch-icon" href="{logo_url}">
+    """,
+    unsafe_allow_html=True
+)
 # ==========================================
 
 
