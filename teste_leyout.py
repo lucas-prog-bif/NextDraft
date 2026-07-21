@@ -1404,17 +1404,17 @@ perfil_usuario_atual = st.session_state.get("usuario_perfil", "Visitante")
 
 opcoes_disponiveis = ["🏠 Home", "🔍 Buscar", "🏃 Boleiros", "💬 Chat", "🔔 Notificações", "👤 Meu Perfil"]
 #  ==========================================
-
+perfil_normalizado = str(perfil_usuario_atual).strip().capitalize()
 
 
 # DEFINE QUEM TEM ACESSO A QUAIS PAGINAS DENTRO DO APP
 # ==========================================
-if perfil_usuario_atual in ["Quadra", "Clubes", "ADMIN"]:
+if perfil_normalizado in ["Quadra", "Clube"] or st.session_state.get("is_admin", False):
     opcoes_disponiveis.append("🏟️ Quadras")
     opcoes_disponiveis.append("⚽ Clubes")
     
 # 3. Se for ADMIN, adiciona o painel extra
-if perfil_usuario_atual == "ADMIN":
+if st.session_state.get("is_admin", False) or perfil_normalizado == "Admin":
     opcoes_disponiveis.append("🛠️ Painel Admin")
     opcoes_disponiveis.append("🏢 Gerenciar Espaço")
 
