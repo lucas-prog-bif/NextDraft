@@ -1374,8 +1374,8 @@ if not st.session_state["logado"]:
                 else:
                     try:
                         cursor.execute(
-                            "INSERT INTO usuarios ( tipo_perfil, username, email, senha) VALUES (%s, %s, %s, %s)", 
-                            (tipo_perfil, novo_nome, novo_email, nova_senha)
+                            "INSERT INTO usuarios ( tipo_perfil, username, email, senha, url_avatar) VALUES (%s, %s, %s, %s, %s)", 
+                            (tipo_perfil, novo_nome, novo_email, nova_senha, "https://www.w3schools.com/howto/img_avatar.png")
                         )
                         conn.commit()
                         
