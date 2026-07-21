@@ -1849,7 +1849,7 @@ elif pagina_selecionada == "🛠️ Painel Admin":
             
             try:
                 conn = criar_conexao()
-                cursor = conn.cursor(dictionary=True)
+                cursor = conn.curso()
                 
                 # TESTE 1: Verificar se o comando está chegando no banco
                 cursor.execute("SELECT id_pelada, nome, status_pagamento, data_vencimento_mensalidade FROM peladas")
