@@ -133,7 +133,7 @@ def executar_consulta(sql):
     conn.close()
     return resultados
 
-DB_URL = ["DATABASE_URL"]
+DB_URL = st.secrets["DATABASE_URL"]
 
 
 def recriar_estrutura():
