@@ -1772,7 +1772,7 @@ if pagina_selecionada == "🏠 Home":
     except Exception as e:
         st.error(f"Erro ao carregar o feed: {e}")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             conn.close()
 
 elif pagina_selecionada == "🏢 Gerenciar Espaço":
