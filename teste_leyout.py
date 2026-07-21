@@ -1364,7 +1364,7 @@ if not st.session_state["logado"]:
                 st.error("A senha deve ter pelo menos 6 caracteres.")
             else:
                 conn = criar_conexao()
-                cursor = conn.cursor(dictionary=True)
+                cursor = conn.cursor()
                 
                 cursor.execute("SELECT id_usuario FROM usuarios WHERE email = %s", (novo_email,))
                 if cursor.fetchone():
