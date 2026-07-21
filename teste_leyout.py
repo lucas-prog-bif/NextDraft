@@ -1377,7 +1377,7 @@ if not st.session_state["logado"]:
                         cursor.execute(
                             """
                             INSERT INTO usuarios (
-                                "nome de usuário", "e-mail", senha, tipo_perfil, 
+                                "username", email, senha, tipo_perfil, 
                                 legenda_autor, url_avatar, biografia, posição, 
                                 tempo_coração, foto_profile, vel, passado, 
                                 barbatana, dri, definição, fis, status_conta, status_pagamento
