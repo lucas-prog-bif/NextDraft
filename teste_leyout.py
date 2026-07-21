@@ -1373,9 +1373,23 @@ if not st.session_state["logado"]:
                     conn.close()
                 else:
                     try:
+                        # Inserção preenchendo as colunas obrigatórias mapeadas na tabela da nuvem
                         cursor.execute(
-                            "INSERT INTO usuarios ( tipo_perfil, username, email, senha, url_avatar, biografia) VALUES (%s, %s, %s, %s, %s, %s)", 
-                            (tipo_perfil, novo_nome, novo_email, nova_senha, "https://www.w3schools.com/howto/img_avatar.png," "novo usurario na rede")
+                            """
+                            INSERT INTO usuarios (
+                                "nome de usuário", e-mail, senha, tipo_perfil, 
+                                legenda_autor, url_avatar, biografia, posição, 
+                                tempo_coração, foto_profile, vel, passado, 
+                                barbatana, dri, definição, fis, status_conta, status_pagamento
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                            RETURNING id_usuario
+                            """, 
+                            (
+                                novo_nome, novo_email, nova_senha, tipo_perfil,
+                                "Membro", "https://www.w3schools.com/howto/img_avatar.png", "Olá!", "Indefinida",
+                                "Normal", "https://www.w3schools.com/howto/img_avatar.png", 0, 0,
+                                0, 0, 0, 0, "Ativo", "Pendente"
+                            )
                         )
                         resultado = cursor.fetchone()
                         conn.commit()
