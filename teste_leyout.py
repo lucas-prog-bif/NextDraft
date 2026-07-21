@@ -1019,7 +1019,7 @@ def exibir_perfil():
     except Exception as e:
         st.error(f"Erro ao conectar ao banco de dados: {e}")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             conn.close()
 
     # Se não existir histórico no banco, define valores padrão (60)
@@ -1228,7 +1228,7 @@ def exibir_aba_notificacoes():
     except Exception as e:
         st.error(f"Erro ao carregar suas notificações: {e}")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             conn.close()
 
 def registrar_notificacao(id_destino, mensagem):
@@ -2255,7 +2255,8 @@ elif pagina_selecionada == "💬 Chat":
     except Exception as e:
         st.error(f"Erro ao carregar contatos: {e}")
     finally:
-        if conn and conn.is_connected(): conn.close()
+        if conn: 
+            conn.close()
 
     # Seletor
     selecionado = st.selectbox("📱 Escolha uma conversa:", ["-- Selecione --"] + list(opcoes_chat.keys()))
