@@ -870,7 +870,7 @@ def exibir_aba_boleiros():
         except Exception as e:
             st.error(f"Erro ao carregar peladas: {e}")
         finally:
-            if conn and conn.is_connected():
+            if conn:
                 conn.close()
 
     # ==========================================================
