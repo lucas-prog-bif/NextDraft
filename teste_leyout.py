@@ -1073,7 +1073,7 @@ def exibir_perfil():
             st.error(f"Erro ao salvar a foto: {e}")
 
     # --- 4. FLUXO EXCLUSIVO PARA ATLETAS (Card Tático + Sliders) ---
-    if perfil_usuario_atual == "Atleta":
+    if perfil_usuario_atual == "Boleiro, Atleta":
         if not habilidades:
             habilidades = {
                 'nota_velocidade': 60, 'nota_passe': 60, 'nota_fisico': 60,
