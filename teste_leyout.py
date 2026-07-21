@@ -20,7 +20,7 @@ from psycopg2.extras import RealDictCursor
 # ==========================================
 st.set_page_config(
     page_title="NextDraft", 
-    page_icon="⚽", 
+    page_icon="logo nextdraft.jpeg", 
     layout="wide", 
     initial_sidebar_state="expanded" # linha da barra lateral
 )
