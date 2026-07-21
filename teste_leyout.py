@@ -993,17 +993,22 @@ def exibir_aba_boleiros():
 def exibir_perfil():
     # Pegando os dados reais do usuário logado na sessão do banco
     id_usuario_atual = int(st.session_state["usuario_id"])
-    nome_usuario_atual = st.session_state.get("username")
     perfil_usuario_atual = st.session_state["usuario_perfil"]
     
     # 1. CARREGAMENTO PRÉVIO DOS DADOS (Evita quebra de escopo das variáveis)
     habilidades = None
     foto_banco = None
+    nome_usuario_atual = ""
     conn = None
     
     try:
         conn = criar_conexao()
         cursor = conn.cursor()
+
+        cursor.execute("SELECT username FROM usuarios WHERE id_usuario = %s", (id_usuario_atual,))
+        res_usuario = cursor.fetchone()
+        if res_usuario and res_usuario[0]:
+            nome_usuario_atual = res_usuario[0]
         
         # Buscamos as notas do atleta
         cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
