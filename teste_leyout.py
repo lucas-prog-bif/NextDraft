@@ -1126,25 +1126,28 @@ def exibir_perfil():
             conn = criar_conexao()
             cursor = conn.cursor()
             
+            # Verifica se já existe registro de habilidades para este usuário
             cursor.execute("SELECT id_atleta FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
             existe = cursor.fetchone()
             
             if existe:
+                # Se já existe, atualiza
                 sql = """UPDATE habilidades_atletas SET nota_velocidade=%s, nota_passe=%s, nota_fisico=%s, 
                          nota_finalizacao=%s, nota_drible=%s, nota_defesa=%s WHERE id_atleta=%s"""
                 cursor.execute(sql, (vel, pas, fis, fin, dri, def_nota, id_usuario_atual))
             else:
-                # Ajustado para incluir o campo username e evitar o erro de NOT-NULL constraint
-                cursor.execute("INSERT INTO atletas (id_atleta, username, nome, email, senha, posicao_principal, cidade, estado) VALUES (%s, %s, %s, %s, '123456', 'Meia', 'São Paulo', 'SP')", (id_usuario_atual, nome_usuario_atual, nome_usuario_atual, f"{nome_usuario_atual.lower()}@email.com"))
+                # Se não existe, insere corretamente vinculado ao id do usuário atual (sem inventar "Visitante")
                 sql = """INSERT INTO habilidades_atletas (id_atleta, nota_velocidade, nota_passe, nota_fisico, 
                          nota_finalizacao, nota_drible, nota_defesa) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
                 cursor.execute(sql, (id_usuario_atual, vel, pas, fis, fin, dri, def_nota))
-            
+                
             conn.commit()
             cursor.close()
             conn.close()
-            st.success("Habilidades salvas! O seu card tático foi recalculado.")
+            
+            st.success("Atributos salvos com sucesso!")
             st.rerun()
+            
         except Exception as e:
             st.error(f"Erro ao salvar atributos: {e}")
 
