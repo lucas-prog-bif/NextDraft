@@ -1378,9 +1378,9 @@ if not st.session_state["logado"]:
                             """
                             INSERT INTO usuarios (
                                 "username", email, senha, tipo_perfil, 
-                                subtitulo_autor, url_avatar, biografia, posição, 
-                                tempo_coração, foto_profile, vel, passado, 
-                                barbatana, dri, definição, fis, status_conta, status_pagamento
+                                subtitulo_autor, url_avatar, biografia, posicao, 
+                                time_coracao, foto_perfil, vel, pas, 
+                                fin, dri, def, fis, status_conta, status_pagamento
                             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                             RETURNING id_usuario
                             """, 
