@@ -20,12 +20,12 @@ from psycopg2.extras import RealDictCursor
 # ==========================================
 st.set_page_config(
     page_title="NextDraft", 
-    page_icon="logo nextdraft.jpeg", 
+    page_icon="logonext.png", 
     layout="wide", 
     initial_sidebar_state="expanded" # linha da barra lateral
 )
 
-logo_url = "logo nextdraft.jpeg" # Coloque o mesmo link ou caminho da sua logo aqui
+logo_url = "logonext.png" # Coloque o mesmo link ou caminho da sua logo aqui
 
 st.markdown(
     f"""
