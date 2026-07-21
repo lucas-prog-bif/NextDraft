@@ -1003,7 +1003,7 @@ def exibir_perfil():
     
     try:
         conn = criar_conexao()
-        cursor = conn.cursor
+        cursor = conn.cursor()
         
         # Buscamos as notas do atleta
         cursor.execute("SELECT * FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
