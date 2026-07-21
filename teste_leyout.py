@@ -144,7 +144,7 @@ def recriar_estrutura():
     # (Você pode pegar os do seu arquivo .sql e apenas ajustar tipos como 'INT' para 'INTEGER')
     comandos_sql = """
     CREATE TABLE usuarios (
-    id_usuario INT serial PRIMARY KEY,
+    id_usuario serial PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
