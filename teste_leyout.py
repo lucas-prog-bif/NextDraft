@@ -1135,7 +1135,7 @@ def exibir_perfil():
                 cursor.execute(sql, (vel, pas, fis, fin, dri, def_nota, id_usuario_atual))
             else:
                 # Ajustado para incluir o campo username e evitar o erro de NOT-NULL constraint
-                cursor.execute("INSERT INTO atletas (id_atleta, username, nome, email, posicao_principal, cidade, estado) VALUES (%s, %s, %s, %s, 'Meia', 'São Paulo', 'SP')", (id_usuario_atual, nome_usuario_atual, nome_usuario_atual, f"{nome_usuario_atual.lower()}@email.com"))
+                cursor.execute("INSERT INTO atletas (id_atleta, username, nome, email, senha, posicao_principal, cidade, estado) VALUES (%s, %s, %s, %s, '123456', 'Meia', 'São Paulo', 'SP')", (id_usuario_atual, nome_usuario_atual, nome_usuario_atual, f"{nome_usuario_atual.lower()}@email.com"))
                 sql = """INSERT INTO habilidades_atletas (id_atleta, nota_velocidade, nota_passe, nota_fisico, 
                          nota_finalizacao, nota_drible, nota_defesa) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
                 cursor.execute(sql, (id_usuario_atual, vel, pas, fis, fin, dri, def_nota))
