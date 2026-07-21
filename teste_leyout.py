@@ -1023,7 +1023,7 @@ def exibir_perfil():
             nome_usuario_atual = res_usuario[0]
         
         # Buscamos as notas do atleta (caso seja atleta)
-        if perfil_usuario_atual == "boleiro":
+        if perfil_usuario_atual == "Boleiro, Atleta":
             cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
             res_hab = cursor.fetchone()
             if res_hab:
