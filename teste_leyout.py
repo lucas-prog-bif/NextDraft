@@ -1006,42 +1006,6 @@ def exibir_perfil():
     # Pegando os dados reais do usuário logado na sessão do banco
     id_usuario_atual = int(st.session_state["usuario_id"])
     perfil_usuario_atual = st.session_state["usuario_perfil"]
-
-    tipo_perfil = "Clube"  # Ou "Quadra" (ambos usam a mesma estrutura base)
-
-# Define os textos dinamicamente com base no tipo
-    if tipo_perfil in ["Clube", "Quadra"]:
-        titulo_pagina = "Painel do Estabelecimento"
-        label_nome = "Nome da Arena / Clube"
-        placeholder_bio = "Ex: Complexo esportivo com 3 quadras society e lanchonete."
-    else:
-        titulo_pagina = "Perfil do Atleta"
-        label_nome = "Nome do Jogador"
-        placeholder_bio = "Ex: Atacante / Meio-campo."
-
-    # Layout da Página Unificada
-    st.title(f"🏢 {titulo_pagina}")
-    st.write("Gerencie as informações do seu espaço esportivo.")
-
-    with st.form("form_perfil_estabelecimento"):
-        nome_local = st.text_input(label_nome, placeholder="Digite o nome...")
-        cidade = st.text_input("Cidade / Estado", placeholder="Ex: São Paulo - SP")
-        descricao = st.text_area("Sobre o Espaço", placeholder=placeholder_bio)
-        
-        # Comodidades comuns para Clube e Quadra
-        st.markdown("### Infraestrutura")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            estacionamento = st.checkbox("Estacionamento")
-        with col2:
-            vestiario = st.checkbox("Vestiários")
-        with col3:
-            lanchonete = st.checkbox("Bar / Lanchonete")
-
-        botao_salvar = st.form_submit_button("Salvar Alterações")
-
-        if botao_salvar:
-            st.success("Informações atualizadas com sucesso no PlanetScale!")
     
     # 1. CARREGAMENTO PRÉVIO DOS DADOS (Evita quebra de escopo das variáveis)
     habilidades = None
@@ -1058,16 +1022,17 @@ def exibir_perfil():
         if res_usuario and res_usuario[0]:
             nome_usuario_atual = res_usuario[0]
         
-        # Buscamos as notas do atleta
-        cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
-        res_hab = cursor.fetchone()
-        if res_hab:
-            habilidades = {
-                'nota_velocidade': res_hab[0], 'nota_passe': res_hab[1], 'nota_fisico': res_hab[2],
-                'nota_finalizacao': res_hab[3], 'nota_drible': res_hab[4], 'nota_defesa': res_hab[5]
-            }
+        # Buscamos as notas do atleta (caso seja atleta)
+        if perfil_usuario_atual == "Atleta":
+            cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
+            res_hab = cursor.fetchone()
+            if res_hab:
+                habilidades = {
+                    'nota_velocidade': res_hab[0], 'nota_passe': res_hab[1], 'nota_fisico': res_hab[2],
+                    'nota_finalizacao': res_hab[3], 'nota_drible': res_hab[4], 'nota_defesa': res_hab[5]
+                }
         
-        # Buscamos a foto do atleta na tabela de usuários (usando índice 0 para evitar o erro de dicionário)
+        # Buscamos a foto na tabela de usuários
         cursor.execute("SELECT foto_perfil FROM usuarios WHERE id_usuario = %s", (id_usuario_atual,))
         dados_foto = cursor.fetchone()
         if dados_foto and dados_foto[0]:
@@ -1080,63 +1045,7 @@ def exibir_perfil():
         if conn:
             conn.close()
 
-    # Se não existir histórico no banco, define valores padrão (60)
-    if not habilidades:
-        habilidades = {
-            'nota_velocidade': 60, 'nota_passe': 60, 'nota_fisico': 60,
-            'nota_finalizacao': 60, 'nota_drible': 60, 'nota_defesa': 60
-        }
-
-    # Pré-calcula os atributos para o Card usar antes dos Sliders (evita bug de reatividade)
-    vel_atual = int(habilidades['nota_velocidade'])
-    pas_atual = int(habilidades['nota_passe'])
-    fin_atual = int(habilidades['nota_finalizacao'])
-    dri_atual = int(habilidades['nota_drible'])
-    def_atual = int(habilidades['nota_defesa'])
-    fis_atual = int(habilidades['nota_fisico'])
-
-    # --- 1. O CARD TÁTICO AGORA NO TOPO DA TELA ---
-    overall = int((vel_atual + pas_atual + fis_atual + fin_atual + dri_atual + def_atual) / 6)
-    
-    if overall >= 80:
-        cor_borda = "linear-gradient(135deg, #ffe066, #f5b041)"
-        cor_texto_tipo = "#f5b041"
-    elif overall >= 70:
-        cor_borda = "linear-gradient(135deg, #d5dbdb, #95a5a6)"
-        cor_texto_tipo = "#95a5a6"
-    else:
-        cor_borda = "linear-gradient(135deg, #edbb99, #a04000)"
-        cor_texto_tipo = "#a04000"
-
-    foto_avatar_src = foto_banco if foto_banco else "https://www.w3schools.com/howto/img_avatar.png"
-
-    html_card = f"""
-    <div style="background: #111; background-image: radial-gradient(circle at 50% 20%, #222 0%, #111 80%); border: 4px solid; border-image: {cor_borda} 1; border-radius: 15px; padding: 25px; max-width: 100%; width: 280px; font-family: 'Arial', sans-serif; color: white; box-shadow: 0px 10px 20px rgba(0,0,0,0.5); margin: 20px auto; display: flex; flex-direction: column;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px;">
-            <div>
-                <div style="font-size: 42px; font-weight: bold; line-height: 38px; color: white;">{overall}</div>
-                <div style="font-size: 14px; font-weight: bold; color: {cor_texto_tipo}; letter-spacing: 1px;">ATLETA</div>
-            </div>
-            <img src="{foto_avatar_src}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background-color: #222;">
-        </div>
-        <div style="text-align: center; margin: 20px 0;">
-            <div style="font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">{nome_usuario_atual.split()[0] if nome_usuario_atual else ""}</div>
-            <div style="font-size: 11px; color: #888; margin-top: 3px;">📍 Verificado via App</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid #222;">
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">VEL</span> <strong style="font-size:14px;">{vel_atual}</strong></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">FIN</span> <strong style="font-size:14px;">{fin_atual}</strong></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">PAS</span> <strong style="font-size:14px;">{pas_atual}</strong></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">DRI</span> <strong style="font-size:14px;">{dri_atual}</strong></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">DEF</span> <strong style="font-size:14px;">{def_atual}</strong></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">FIS</span> <strong style="font-size:14px;">{fis_atual}</strong></div>
-        </div>
-    </div>
-    """
-    st.markdown(html_card, unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- 2. SEÇÃO DE INFORMAÇÕES DO USUÁRIO ---
+    # --- 2. SEÇÃO COMUM (Exibida para todos os perfis) ---
     st.subheader("📋 Suas Informações")
     with st.container(border=True):
         st.markdown(f"**Nome:** {nome_usuario_atual}")
@@ -1144,8 +1053,8 @@ def exibir_perfil():
 
     # --- 3. SEÇÃO DE UPLOAD DE FOTO ---
     st.markdown("<br>", unsafe_allow_html=True)
-    st.write("📷 **Sua Foto do Card**")
-    arquivo_foto = st.file_uploader("Escolha uma foto para o seu Card", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
+    st.write("📷 **Sua Foto de Perfil**")
+    arquivo_foto = st.file_uploader("Escolha uma foto", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
     
     if arquivo_foto is not None:
         bytes_data = arquivo_foto.read()
@@ -1163,46 +1072,121 @@ def exibir_perfil():
         except Exception as e:
             st.error(f"Erro ao salvar a foto: {e}")
 
-    # --- 4. ATUALIZAR ATRIBUTOS ---
-    st.markdown("---")
-    st.subheader("⚡ Atualizar Atributos (Modo Atleta)")
-    
-    vel = st.slider("Velocidade (VEL)", 10, 99, vel_atual)
-    pas = st.slider("Passe (PAS)", 10, 99, pas_atual)
-    fin = st.slider("Finalização (FIN)", 10, 99, fin_atual)
-    dri = st.slider("Dribles (DRI)", 10, 99, dri_atual)
-    def_nota = st.slider("Defesa (DEF)", 10, 99, def_atual)
-    fis = st.slider("Físico (FIS)", 10, 99, fis_atual)
-    
-    if st.button("💾 Salvar Atributos no Banco", use_container_width=True):
-        try:
-            conn = criar_conexao()
-            cursor = conn.cursor()
-            
-            # Verifica se já existe registro de habilidades para este usuário
-            cursor.execute("SELECT id_atleta FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
-            existe = cursor.fetchone()
-            
-            if existe:
-                # Se já existe, atualiza
-                sql = """UPDATE habilidades_atletas SET nota_velocidade=%s, nota_passe=%s, nota_fisico=%s, 
-                         nota_finalizacao=%s, nota_drible=%s, nota_defesa=%s WHERE id_atleta=%s"""
-                cursor.execute(sql, (vel, pas, fis, fin, dri, def_nota, id_usuario_atual))
-            else:
-                # Se não existe, insere corretamente vinculado ao id do usuário atual (sem inventar "Visitante")
-                sql = """INSERT INTO habilidades_atletas (id_atleta, nota_velocidade, nota_passe, nota_fisico, 
-                         nota_finalizacao, nota_drible, nota_defesa) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-                cursor.execute(sql, (id_usuario_atual, vel, pas, fis, fin, dri, def_nota))
+    # --- 4. FLUXO EXCLUSIVO PARA ATLETAS (Card Tático + Sliders) ---
+    if perfil_usuario_atual == "Atleta":
+        if not habilidades:
+            habilidades = {
+                'nota_velocidade': 60, 'nota_passe': 60, 'nota_fisico': 60,
+                'nota_finalizacao': 60, 'nota_drible': 60, 'nota_defesa': 60
+            }
+
+        vel_atual = int(habilidades['nota_velocidade'])
+        pas_atual = int(habilidades['nota_passe'])
+        fin_atual = int(habilidades['nota_finalizacao'])
+        dri_atual = int(habilidades['nota_drible'])
+        def_atual = int(habilidades['nota_defesa'])
+        fis_atual = int(habilidades['nota_fisico'])
+
+        overall = int((vel_atual + pas_atual + fis_atual + fin_atual + dri_atual + def_atual) / 6)
+        
+        if overall >= 80:
+            cor_borda = "linear-gradient(135deg, #ffe066, #f5b041)"
+            cor_texto_tipo = "#f5b041"
+        elif overall >= 70:
+            cor_borda = "linear-gradient(135deg, #d5dbdb, #95a5a6)"
+            cor_texto_tipo = "#95a5a6"
+        else:
+            cor_borda = "linear-gradient(135deg, #edbb99, #a04000)"
+            cor_texto_tipo = "#a04000"
+
+        foto_avatar_src = foto_banco if foto_banco else "https://www.w3schools.com/howto/img_avatar.png"
+
+        html_card = f"""
+        <div style="background: #111; background-image: radial-gradient(circle at 50% 20%, #222 0%, #111 80%); border: 4px solid; border-image: {cor_borda} 1; border-radius: 15px; padding: 25px; max-width: 100%; width: 280px; font-family: 'Arial', sans-serif; color: white; box-shadow: 0px 10px 20px rgba(0,0,0,0.5); margin: 20px auto; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                <div>
+                    <div style="font-size: 42px; font-weight: bold; line-height: 38px; color: white;">{overall}</div>
+                    <div style="font-size: 14px; font-weight: bold; color: {cor_texto_tipo}; letter-spacing: 1px;">ATLETA</div>
+                </div>
+                <img src="{foto_avatar_src}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background-color: #222;">
+            </div>
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">{nome_usuario_atual.split()[0] if nome_usuario_atual else ""}</div>
+                <div style="font-size: 11px; color: #888; margin-top: 3px;">📍 Verificado via App</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid #222;">
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">VEL</span> <strong style="font-size:14px;">{vel_atual}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">FIN</span> <strong style="font-size:14px;">{fin_atual}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">PAS</span> <strong style="font-size:14px;">{pas_atual}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">DRI</span> <strong style="font-size:14px;">{dri_atual}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">DEF</span> <strong style="font-size:14px;">{def_atual}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color:#aaa; font-size:13px;">FIS</span> <strong style="font-size:14px;">{fis_atual}</strong></div>
+            </div>
+        </div>
+        """
+        st.markdown(html_card, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.subheader("⚡ Atualizar Atributos (Modo Atleta)")
+        
+        vel = st.slider("Velocidade (VEL)", 10, 99, vel_atual)
+        pas = st.slider("Passe (PAS)", 10, 99, pas_atual)
+        fin = st.slider("Finalização (FIN)", 10, 99, fin_atual)
+        dri = st.slider("Dribles (DRI)", 10, 99, dri_atual)
+        def_nota = st.slider("Defesa (DEF)", 10, 99, def_atual)
+        fis = st.slider("Físico (FIS)", 10, 99, fis_atual)
+        
+        if st.button("💾 Salvar Atributos no Banco", use_container_width=True):
+            try:
+                conn = criar_conexao()
+                cursor = conn.cursor()
                 
-            conn.commit()
-            cursor.close()
-            conn.close()
+                cursor.execute("SELECT id_atleta FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
+                existe = cursor.fetchone()
+                
+                if existe:
+                    sql = """UPDATE habilidades_atletas SET nota_velocidade=%s, nota_passe=%s, nota_fisico=%s, 
+                             nota_finalizacao=%s, nota_drible=%s, nota_defesa=%s WHERE id_atleta=%s"""
+                    cursor.execute(sql, (vel, pas, fis, fin, dri, def_nota, id_usuario_atual))
+                else:
+                    sql = """INSERT INTO habilidades_atletas (id_atleta, nota_velocidade, nota_passe, nota_fisico, 
+                             nota_finalizacao, nota_drible, nota_defesa) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+                    cursor.execute(sql, (id_usuario_atual, vel, pas, fis, fin, dri, def_nota))
+                    
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                st.success("Atributos salvos com sucesso!")
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"Erro ao salvar atributos: {e}")
+
+    # --- 5. FLUXO EXCLUSIVO PARA CLUBE E QUADRA ---
+    else:
+        st.markdown("---")
+        st.subheader("🏟️ Painel de Gestão do Estabelecimento")
+        
+        with st.form("form_perfil_estabelecimento"):
+            st.write("Configurações da sua Arena / Quadra")
             
-            st.success("Atributos salvos com sucesso!")
-            st.rerun()
+            descricao_local = st.text_area("Sobre o Estabelecimento", placeholder="Descreva sua estrutura, diferenciais...")
             
-        except Exception as e:
-            st.error(f"Erro ao salvar atributos: {e}")
+            st.markdown("### Infraestrutura Disponível")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                estacionamento = st.checkbox("Estacionamento")
+            with col2:
+                vestiario = st.checkbox("Vestiários")
+            with col3:
+                lanchonete = st.checkbox("Bar / Lanchonete")
+
+            botao_salvar_estab = st.form_submit_button("Salvar Alterações da Quadra/Clube")
+
+            if botao_salvar_estab:
+                st.success("Informações do estabelecimento atualizadas com sucesso!")
 
     
 @st.dialog("📖 Story do Parceiro")
