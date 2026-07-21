@@ -29,8 +29,10 @@ logo_url = "logonext.png" # Coloque o mesmo link ou caminho da sua logo aqui
 
 st.markdown(
     f"""
+    <link rel="icon" type="image/png" href="{logo_url}">
     <link rel="shortcut icon" href="{logo_url}">
     <link rel="apple-touch-icon" href="{logo_url}">
+    <link rel="apple-touch-icon-precomposed" href="{logo_url}">
     """,
     unsafe_allow_html=True
 )
