@@ -993,7 +993,7 @@ def exibir_aba_boleiros():
 def exibir_perfil():
     # Pegando os dados reais do usuário logado na sessão do banco
     id_usuario_atual = int(st.session_state["usuario_id"])
-    nome_usuario_atual = st.session_state.get("username", "Visitante")
+    nome_usuario_atual = st.session_state.get("username")
     perfil_usuario_atual = st.session_state["usuario_perfil"]
     
     # 1. CARREGAMENTO PRÉVIO DOS DADOS (Evita quebra de escopo das variáveis)
