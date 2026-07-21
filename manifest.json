@@ -1,0 +1,15 @@
+{
+  "short_name": "NextDraft",
+  "name": "Rede do Futebol - NextDraft",
+  "icons": [
+    {
+      "src": "logonext.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "theme_color": "#000000"
+}
