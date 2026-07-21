@@ -143,7 +143,7 @@ def recriar_estrutura():
     # Coloque aqui os comandos CREATE TABLE que funcionam no Postgres
     # (Você pode pegar os do seu arquivo .sql e apenas ajustar tipos como 'INT' para 'INTEGER')
     comandos_sql = """
-    CREATE TABLE usuarios (
+    CREATE TABLE  IF NOT EXISTS usuarios (
     id_usuario serial PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
