@@ -1006,14 +1006,19 @@ def exibir_perfil():
         cursor = conn.cursor()
         
         # Buscamos as notas do atleta
-        cursor.execute("SELECT * FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
-        habilidades = cursor.fetchone()
+        cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
+        res_hab = cursor.fetchone()
+        if res_hab:
+            habilidades = {
+                'nota_velocidade': res_hab[0], 'nota_passe': res_hab[1], 'nota_fisico': res_hab[2],
+                'nota_finalizacao': res_hab[3], 'nota_drible': res_hab[4], 'nota_defesa': res_hab[5]
+            }
         
-        # Buscamos a foto do atleta na tabela de usuários
+        # Buscamos a foto do atleta na tabela de usuários (usando índice 0 para evitar o erro de dicionário)
         cursor.execute("SELECT foto_perfil FROM usuarios WHERE id_usuario = %s", (id_usuario_atual,))
         dados_foto = cursor.fetchone()
-        if dados_foto:
-            foto_banco = dados_foto['foto_perfil']
+        if dados_foto and dados_foto[0]:
+            foto_banco = dados_foto[0]
             
         cursor.close()
     except Exception as e:
@@ -1030,7 +1035,6 @@ def exibir_perfil():
         }
 
     # Pré-calcula os atributos para o Card usar antes dos Sliders (evita bug de reatividade)
-    # Se o usuário mexer no slider, o st.rerun atualiza esses valores na próxima passada
     vel_atual = int(habilidades['nota_velocidade'])
     pas_atual = int(habilidades['nota_passe'])
     fin_atual = int(habilidades['nota_finalizacao'])
@@ -1130,7 +1134,8 @@ def exibir_perfil():
                          nota_finalizacao=%s, nota_drible=%s, nota_defesa=%s WHERE id_atleta=%s"""
                 cursor.execute(sql, (vel, pas, fis, fin, dri, def_nota, id_usuario_atual))
             else:
-                cursor.execute("INSERT INTO atletas (id_atleta, nome, posicao_principal, cidade, estado) VALUES (%s, %s, 'Meia', 'São Paulo', 'SP')", (id_usuario_atual, nome_usuario_atual))
+                # Ajustado para incluir o campo username e evitar o erro de NOT-NULL constraint
+                cursor.execute("INSERT INTO atletas (id_atleta, username, nome, posicao_principal, cidade, estado) VALUES (%s, %s, %s, 'Meia', 'São Paulo', 'SP')", (id_usuario_atual, nome_usuario_atual, nome_usuario_atual))
                 sql = """INSERT INTO habilidades_atletas (id_atleta, nota_velocidade, nota_passe, nota_fisico, 
                          nota_finalizacao, nota_drible, nota_defesa) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
                 cursor.execute(sql, (id_usuario_atual, vel, pas, fis, fin, dri, def_nota))
