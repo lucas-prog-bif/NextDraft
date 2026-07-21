@@ -154,7 +154,7 @@ def recriar_estrutura():
     biografia text not null,
     posicao varchar (50),
     time_coracao varchar (100),
-    foto_perfil longtext,
+    foto_perfil text,
     vel integer,
     pas integer,
     fin integer,
