@@ -1377,15 +1377,20 @@ if not st.session_state["logado"]:
                             "INSERT INTO usuarios ( tipo_perfil, username, email, senha, url_avatar, biografia) VALUES (%s, %s, %s, %s, %s, %s)", 
                             (tipo_perfil, novo_nome, novo_email, nova_senha, "https://www.w3schools.com/howto/img_avatar.png," "novo usurario na rede")
                         )
+                        resultado = cursor.fetchone()
                         conn.commit()
                         
-                        st.session_state.update({
-                            "logado": True, 
-                            "usuario_id": cursor.lastrowid, 
-                            "usuario_nome": novo_nome, 
-                            "usuario_perfil": tipo_perfil
-                        })
-                        st.rerun()
+                        if resultado:
+                            novo_id = resultado[0]
+                            st.session_state.update({
+                                "logado": True, 
+                                "usuario_id": novo_id, 
+                                "usuario_nome": novo_nome, 
+                                "usuario_perfil": tipo_perfil
+                            })
+                            st.rerun()
+                        else:
+                            st.error("Erro ao recuperar o ID do usuário recém-criado.")
                     except Exception as e:
                         st.error(f"Erro ao salvar no banco: {e}")
                     finally:
