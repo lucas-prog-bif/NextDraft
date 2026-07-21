@@ -19,7 +19,7 @@ from psycopg2.extras import RealDictCursor
 # 1. CONFIGURAÇÃO DA PÁGINA (APENAS UMA VEZ E NO TOPO!)
 # ==========================================
 st.set_page_config(
-    page_title="NextDraft", 
+    page_title="NextDraft - Rede do Futebol", 
     page_icon="logonext.png", 
     layout="wide", 
     initial_sidebar_state="expanded" # linha da barra lateral
