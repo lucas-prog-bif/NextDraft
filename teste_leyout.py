@@ -677,7 +677,7 @@ def exibir_aba_clubes():
         except Exception as e:
             st.error(f"Erro ao carregar o mural dos clubes: {e}")
         finally:
-            if conn and conn.is_connected():
+            if conn:
                 conn.close()
 
     # ==========================================
@@ -1815,7 +1815,7 @@ elif pagina_selecionada == "🏢 Gerenciar Espaço":
         st.error("Sua mensalidade está pendente. Regularize para postar.")
 
 elif pagina_selecionada == "🛠️ Painel Admin":
-    if perfil_usuario_atual == "ADMIN":
+    if perfil_usuario_atual == "admin":
         st.title("🛠️ Painel de Controle Supremo")
         
         # Centralizando tudo em abas
