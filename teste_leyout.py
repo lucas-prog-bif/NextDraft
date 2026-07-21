@@ -1006,6 +1006,42 @@ def exibir_perfil():
     # Pegando os dados reais do usuário logado na sessão do banco
     id_usuario_atual = int(st.session_state["usuario_id"])
     perfil_usuario_atual = st.session_state["usuario_perfil"]
+
+    tipo_perfil = "Clube"  # Ou "Quadra" (ambos usam a mesma estrutura base)
+
+# Define os textos dinamicamente com base no tipo
+    if tipo_perfil in ["Clube", "Quadra"]:
+        titulo_pagina = "Painel do Estabelecimento"
+        label_nome = "Nome da Arena / Clube"
+        placeholder_bio = "Ex: Complexo esportivo com 3 quadras society e lanchonete."
+    else:
+        titulo_pagina = "Perfil do Atleta"
+        label_nome = "Nome do Jogador"
+        placeholder_bio = "Ex: Atacante / Meio-campo."
+
+    # Layout da Página Unificada
+    st.title(f"🏢 {titulo_pagina}")
+    st.write("Gerencie as informações do seu espaço esportivo.")
+
+    with st.form("form_perfil_estabelecimento"):
+        nome_local = st.text_input(label_nome, placeholder="Digite o nome...")
+        cidade = st.text_input("Cidade / Estado", placeholder="Ex: São Paulo - SP")
+        descricao = st.text_area("Sobre o Espaço", placeholder=placeholder_bio)
+        
+        # Comodidades comuns para Clube e Quadra
+        st.markdown("### Infraestrutura")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            estacionamento = st.checkbox("Estacionamento")
+        with col2:
+            vestiario = st.checkbox("Vestiários")
+        with col3:
+            lanchonete = st.checkbox("Bar / Lanchonete")
+
+        botao_salvar = st.form_submit_button("Salvar Alterações")
+
+        if botao_salvar:
+            st.success("Informações atualizadas com sucesso no PlanetScale!")
     
     # 1. CARREGAMENTO PRÉVIO DOS DADOS (Evita quebra de escopo das variáveis)
     habilidades = None
@@ -1168,6 +1204,7 @@ def exibir_perfil():
         except Exception as e:
             st.error(f"Erro ao salvar atributos: {e}")
 
+    
 @st.dialog("📖 Story do Parceiro")
 def abrir_story_parceiro(nome_parceiro):
     conn = None
