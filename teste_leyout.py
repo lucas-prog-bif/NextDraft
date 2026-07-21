@@ -2106,7 +2106,7 @@ elif pagina_selecionada == "🔍 Buscar":
             # 🔄 Buscando as novas colunas de contato do banco
             query = """
             SELECT nome_clube, conteudo, tag_aviso, zap_contato, email_contato, 
-                nome_arquivo_media, DATE_FORMAT(data_postagem, '%d/%m %H:%i') as data 
+                nome_arquivo_media, TO_CHAR(data_postagem, 'YYYY-MM-DD') as data 
             FROM postagens_clubes 
             ORDER BY data_postagem DESC
             """
