@@ -1023,7 +1023,8 @@ def exibir_perfil():
             nome_usuario_atual = res_usuario[0]
         
         # Buscamos as notas do atleta (caso seja atleta)
-        if perfil_usuario_atual == "Boleiro, Atleta":
+        # Aceita qualquer variação de nome para o perfil de jogador/boleiro
+        if str(perfil_usuario_atual).strip().lower() in ["atleta", "boleiro"]:
             cursor.execute("SELECT nota_velocidade, nota_passe, nota_fisico, nota_finalizacao, nota_drible, nota_defesa FROM habilidades_atletas WHERE id_atleta = %s", (id_usuario_atual,))
             res_hab = cursor.fetchone()
             if res_hab:
@@ -1073,7 +1074,8 @@ def exibir_perfil():
             st.error(f"Erro ao salvar a foto: {e}")
 
     # --- 4. FLUXO EXCLUSIVO PARA ATLETAS (Card Tático + Sliders) ---
-    if perfil_usuario_atual == "Boleiro, Atleta":
+    # Aceita qualquer variação de nome para o perfil de jogador/boleiro
+    if str(perfil_usuario_atual).strip().lower() in ["atleta", "boleiro"]:
         if not habilidades:
             habilidades = {
                 'nota_velocidade': 60, 'nota_passe': 60, 'nota_fisico': 60,
