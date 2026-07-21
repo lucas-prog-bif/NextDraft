@@ -987,7 +987,7 @@ def exibir_aba_boleiros():
         except Exception as e:
             st.error(f"Erro no painel do organizador: {e}")
         finally:
-            if conn and conn.is_connected():
+            if conn:
                 conn.close()
 
 def exibir_perfil():
