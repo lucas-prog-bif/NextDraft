@@ -1702,21 +1702,18 @@ if pagina_selecionada == "🏠 Home":
 
                 usuario_atual = st.session_state.get("usuario_nome")
 
-
                 with st.container(border=True):
                     col_id = post['id_post']
-                    usuario_atual = st.session_state.get("usuario_nome")
                     is_autor = (post['username_autor'] == usuario_atual)
                     
-                    # --- 1. CABEÇALHO (Nome do usuário e Lixeira colada logo ao lado) ---
-                    # Usamos colunas bem próximas para a lixeira não fugir para a ponta da tela
+                    # --- 1. CABEÇALHO ---
                     col_autor, col_lixeira = st.columns([0.8, 0.2]) if is_autor else st.columns([1.0, 0.01])
                     
                     with col_autor:
                         st.markdown(
                             f"""
                             <div style="display: flex; align-items: center; width: 100%;">
-                                <div style="background-color: #0f172a; padding: 10px 12px; border-radius: 50%; font-size: 16px; margin-right: 12px; border: 1px solid #334155;">跑</div>
+                                <div style="background-color: #0f172a; padding: 10px 12px; border-radius: 50%; font-size: 16px; margin-right: 12px; border: 1px solid #334155;">🏃</div>
                                 <div style="line-height: 1.3;">
                                     <strong style="color: #f8fafc; font-size: 15px; font-weight: 600;">{post['username_autor']}</strong><br>
                                     <span style="color: #10b981; font-size: 11px; font-weight: bold; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 2px;">{post['subtitulo_autor']}</span>
@@ -1728,7 +1725,6 @@ if pagina_selecionada == "🏠 Home":
                     
                     if is_autor:
                         with col_lixeira:
-                            # Envolvemos na classe CSS para estilizar o botão nativo do Streamlit
                             st.markdown('<div class="lixeira-topo">', unsafe_allow_html=True)
                             if st.button("🗑️", key=f"dl_{col_id}"):
                                 try:
@@ -1743,22 +1739,19 @@ if pagina_selecionada == "🏠 Home":
                                     st.error(f"Erro ao deletar: {e}")
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- 2. LEGENDA DO POST ---
+                    # --- 2. LEGENDA ---
                     st.markdown(f"""
                         <div style='color: #e2e8f0; font-size: 14px; line-height: 1.5; margin-top: 14px; margin-bottom: 12px; word-wrap: break-word;'>
                             {post['legenda']}
                         </div>
                     """, unsafe_allow_html=True)
 
-
-                    
-                    # --- 3. CONTEÚDO DE MÍDIA MID-CARD ---
+                    # --- 3. MÍDIA ---
                     if pd.notnull(post['url_midia']) and post['url_midia'].strip() != "":
                         pasta_do_script = os.path.dirname(os.path.abspath(__file__))
                         caminho_completo = os.path.join(pasta_do_script, "uploads", post['url_midia'])
                         tipo_limpo = post['tipo_midia'].lower() if post['tipo_midia'] else ""
 
-                        # 1. Verifica se é uma imagem
                         if any(ext in post['url_midia'].lower() for ext in ['.png', '.jpg', '.jpeg', '.gif']):
                             if os.path.exists(caminho_completo):
                                 try:
@@ -1768,49 +1761,78 @@ if pagina_selecionada == "🏠 Home":
                                     st.error(f"Erro ao carregar imagem: {e}")
                             else:
                                 st.warning(f"Arquivo não encontrado: {post['url_midia']}")
-
-                        # 2. Verifica se é um vídeo
                         elif 'video' in tipo_limpo or '🎬' in tipo_limpo:
                             st.video(caminho_completo)
-
-                        # 3. Verifica se é um link
                         elif 'link' in tipo_limpo or '🔗' in tipo_limpo:
                             st.markdown(f"🔗 <a href='{post['url_midia']}' target='_blank' style='color: #10b981; font-weight: bold; text-decoration: none;'>Acessar Link Externo</a>", unsafe_allow_html=True)
-                            
-                    # --- 4. BOTÕES DA BASE (Curtir, Desafiar, Comentários) ---
+
+                    # --- 4. BOTÕES DA BASE ---
                     st.markdown('<div class="botoes-base-container">', unsafe_allow_html=True)
                     
-                    # Botão Curtir
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT 1 FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
-                    ja_curtiu = cursor.fetchone() is not None
-                    cursor.close()
+                    # Curtir
+                    cursor_curtidas = conn.cursor()
+                    cursor_curtidas.execute("SELECT 1 FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
+                    ja_curtiu = cursor_curtidas.fetchone() is not None
+                    cursor_curtidas.close()
                     emoji_curtir = "❤️" if ja_curtiu else "🤍"
                     
                     if st.button(f"{emoji_curtir} {post['curtidas']}", key=f"lk_{col_id}"):
-                        cursor = conn.cursor()
+                        c_aux = conn.cursor()
                         if ja_curtiu:
-                            cursor.execute("DELETE FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
-                            cursor.execute("UPDATE postagens SET curtidas = GREATEST(0, curtidas - 1) WHERE id_post = %s", (col_id,))
+                            c_aux.execute("DELETE FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
+                            c_aux.execute("UPDATE postagens SET curtidas = GREATEST(0, curtidas - 1) WHERE id_post = %s", (col_id,))
                         else:
-                            cursor.execute("INSERT INTO curtidas_posts (id_post, username) VALUES (%s, %s)", (col_id, usuario_atual))
-                            cursor.execute("UPDATE postagens SET curtidas = curtidas + 1 WHERE id_post = %s", (col_id,))
+                            c_aux.execute("INSERT INTO curtidas_posts (id_post, username) VALUES (%s, %s)", (col_id, usuario_atual))
+                            c_aux.execute("UPDATE postagens SET curtidas = curtidas + 1 WHERE id_post = %s", (col_id,))
                         conn.commit()
-                        cursor.close()
+                        c_aux.close()
                         st.rerun()
 
-                    # Botão Desafiar (Aparece apenas se não for o autor do post)
+                    # Desafiar (Apenas para outros usuários)
                     if post['username_autor'] != usuario_atual:
-                        if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{post['id_post']}", use_container_width=True):
+                        if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{col_id}", use_container_width=True):
                             st.info("Funcionalidade de desafio em breve!")    
                     
-                    # Botão Comentários
-                    texto_coment_botao = "💬 Comentários" if not st.session_state.get(f"ver_comentarios_{col_id}", False) else "🔼 Ocultar"
+                    # Comentários (Botão para abrir/fechar)
+                    key_comentarios = f"ver_comentarios_{col_id}"
+                    exibindo_comentarios = st.session_state.get(key_comentarios, False)
+                    texto_coment_botao = "💬 Comentários" if not exibindo_comentarios else "🔼 Ocultar"
+                    
                     if st.button(texto_coment_botao, key=f"b_cm_{col_id}"):
-                        st.session_state[f"ver_comentarios_{col_id}"] = not st.session_state.get(f"ver_comentarios_{col_id}", False)
+                        st.session_state[key_comentarios] = not exibindo_comentarios
                         st.rerun()
                         
-                    st.markdown('</div>', unsafe_allow_html=True) # Fecha a div dos botões colados # Fecha a div dos botões colados
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                    # --- 5. ÁREA DE COMENTÁRIOS EXPANSÍVEL ---
+                    if st.session_state.get(f"ver_comentarios_{col_id}", False):
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        
+                        novo_comentario = st.text_input("Escreva um comentário...", key=f"input_coment_{col_id}", label_visibility="collapsed", placeholder="Escreva um comentário...")
+                        if st.button("Enviar", key=f"envia_coment_{col_id}", use_container_width=True):
+                            if novo_comentario and novo_comentario.strip():
+                                c_coment = conn.cursor()
+                                c_coment.execute("INSERT INTO comentarios (id_post, username_autor, texto) VALUES (%s, %s, %s)", 
+                                                (col_id, usuario_atual, novo_comentario.strip()))
+                                conn.commit()
+                                c_coment.close()
+                                st.rerun()
+                                
+                        df_comentarios = pd.read_sql("SELECT username_autor, texto FROM comentarios WHERE id_post = %s ORDER BY id_comentario DESC", conn, params=[col_id])
+                            
+                        if df_comentarios.empty:
+                            st.caption("Nenhum comentário ainda. Comece a conversa!")
+                        else:
+                            for _, com in df_comentarios.iterrows():
+                                st.markdown(
+                                    f"""
+                                    <div style="background-color: #0f172a; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1e293b; word-wrap: break-word;">
+                                        <strong style="color: #10b981; font-size: 13px;">@{com['username_autor']}</strong>
+                                        <p style="color: #cbd5e1; font-size: 13px; margin: 4px 0 0 0;">{com['texto']}</p>
+                                    </div>
+                                    """, 
+                                    unsafe_allow_html=True
+                                ) # Fecha a div dos botões colados # Fecha a div dos botões colados
 
                         
                                 
