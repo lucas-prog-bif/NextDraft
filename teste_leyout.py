@@ -2509,6 +2509,18 @@ elif pagina_selecionada == "💬 Chat":
             conn = criar_conexao()
 
             id_destinatario = cid
+            if tipo == "desafio":
+                cur_temp = conn.cursor()
+                cur_temp.execute("SELECT username_desafiante, username_desafiado FROM desafios WHERE id_desafio = %s", (cid,))
+                res_des = cur_temp.fetchone()
+                if res_des:
+                    oponente_username = res_des[1] if res_des[0] == nome_usuario_atual else res_des[0]
+                    cur_temp.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (oponente_username,))
+                    res_id_op = cur_temp.fetchone()
+                    if res_id_op:
+                        id_destinatario = res_id_op[0]
+                cur_temp.close()
+
             if tipo == "grupo":
                 query_hist = "SELECT id_envia, nome_envia, mensagem FROM mensagens_chat WHERE id_pelada = %s ORDER BY data_envio ASC"
                 df_chat = pd.read_sql(query_hist, conn, params=[cid])
@@ -2520,7 +2532,8 @@ elif pagina_selecionada == "💬 Chat":
                       AND (id_pelada IS NULL OR id_pelada = 0) 
                     ORDER BY data_envio ASC
                 """
-                df_chat = pd.read_sql(query_hist, conn, params=[id_usuario_atual, cid, cid, id_usuario_atual])
+                # Usamos id_destinatario em vez de cid aqui para buscar o chat privado/desafio corretamente
+                df_chat = pd.read_sql(query_hist, conn, params=[id_usuario_atual, id_destinatario, id_destinatario, id_usuario_atual])
             
             with st.container(height=300, border=True):
                 for _, msg in df_chat.iterrows():
@@ -2541,8 +2554,10 @@ elif pagina_selecionada == "💬 Chat":
                     cursor.execute("INSERT INTO mensagens_chat (id_envia, nome_envia, id_pelada, id_recebe, mensagem) VALUES (%s, %s, %s, 0, %s)", (id_usuario_atual, nome_usuario_atual, cid, resposta))
                 else:
                     dest_envio = id_destinatario if tipo == "desafio" else cid
-                    cursor.execute("INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)", (id_usuario_atual, nome_usuario_atual, cid, resposta))
+                    # Usamos dest_envio para salvar o id_recebe correto no banco
+                    cursor.execute("INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)", (id_usuario_atual, nome_usuario_atual, dest_envio, resposta))
                 conn.commit()
+                cursor.close()
                 st.rerun()
         finally:
             if conn: 
