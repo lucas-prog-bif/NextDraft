@@ -1700,7 +1700,7 @@ if pagina_selecionada == "🏠 Home":
         else:
             for _, post in df_posts.iterrows():
 
-                id_usuario_atual = int(st.session_state.get("usuario_id", 0))
+                usuario_atual = st.session_state.get("usuario_nome")
 
 
                 with st.container(border=True):
@@ -1797,7 +1797,7 @@ if pagina_selecionada == "🏠 Home":
                         cursor.close()
                         st.rerun()
 
-                    if int(post['username_autor']) != id_usuario_atual:
+                    if int(post['username_autor']) != usuario_atual:
                         if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{post['id_post']}", use_container_width=True):
                             st.info("Funcionalidade de desafio em breve!")    
                     
