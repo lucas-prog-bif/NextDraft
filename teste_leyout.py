@@ -2536,6 +2536,7 @@ elif pagina_selecionada == "💬 Chat":
                 conn.commit()
                 st.rerun()
         finally:
-            if conn and conn.is_connected(): conn.close()
+            if conn(): 
+                conn.close()
 # ==========================================
 
