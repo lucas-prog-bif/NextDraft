@@ -1259,17 +1259,10 @@ def exibir_aba_notificacoes():
                         st.markdown(f"**@{desafiante}** te desafiou para um duelo (Post #{id_post})!")
                         
                         col_aceitar, col_recusar = st.columns(2)
+                        
                         with col_aceitar:
-                            if st.button("✅ Aceitar", key=f"aceitar_{id_desafio}", use_container_width=True):
-                                c_acao = conn.cursor()
-                                c_acao.execute("UPDATE desafios SET status = 'Aceito' WHERE id_desafio = %s", (id_desafio,))
-                                conn.commit()
-                                c_acao.close()
-                                st.success(f"Você aceitou o desafio de @{desafiante}!")
-                                st.rerun()
-
-                        with col_aceitar:
-                            if st.button("✅ Aceitar", key=f"aceitar_{id_desafio}", use_container_width=True):
+                            # Chave única com id_desafio + id_post
+                            if st.button("✅ Aceitar", key=f"aceitar_{id_desafio}_{id_post}", use_container_width=True):
                                 c_acao = conn.cursor()
                                 
                                 # 1. Atualiza o status para Aceito
@@ -1289,7 +1282,8 @@ def exibir_aba_notificacoes():
                                 st.rerun()        
                                 
                         with col_recusar:
-                            if st.button("❌ Recusar", key=f"recusar_{id_desafio}", use_container_width=True):
+                            # Chave única com id_desafio + id_post
+                            if st.button("❌ Recusar", key=f"recusar_{id_desafio}_{id_post}", use_container_width=True):
                                 c_acao = conn.cursor()
                                 c_acao.execute("UPDATE desafios SET status = 'Recusado' WHERE id_desafio = %s", (id_desafio,))
                                 c_acao.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (desafiante,))
@@ -1302,6 +1296,7 @@ def exibir_aba_notificacoes():
                                 c_acao.close()
                                 st.warning("Desafio recusado.")
                                 st.rerun()
+                                
                 st.markdown("<hr>", unsafe_allow_html=True)
 
 
