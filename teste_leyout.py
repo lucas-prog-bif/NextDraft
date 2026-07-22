@@ -2393,6 +2393,26 @@ elif pagina_selecionada == "💬 Chat":
     try:
         conn = criar_conexao()
         
+
+        # C. DESAFIOS ACEITOS (NOVO)
+        query_desafios = """
+            SELECT id_desafio, id_post, username_desafiante, username_desafiado 
+            FROM desafios 
+            WHERE (username_desafiante = %s OR username_desafiado = %s) AND status = 'Aceito'
+        """
+        df_desafios = pd.read_sql(query_desafios, conn, params=[nome_usuario_atual, nome_usuario_atual])
+        for _, des in df_desafios.iterrows():
+            # Descobre quem é o oponente para exibir no nome da conversa
+            oponente = des['username_desafiado'] if des['username_desafiante'] == nome_usuario_atual else des['username_desafiante']
+            chave = f"⚔️ DESAFIO vs @{oponente} (Post #{des['id_post']})"
+            opcoes_chat[chave] = {
+                "id": des['id_desafio'], 
+                "nome": f"Duelo contra @{oponente}", 
+                "tipo": "desafio", 
+                "oponente": oponente,
+                "id_post": des['id_post']
+            }
+
         # A. GRUPOS (APENAS ONDE O USUÁRIO ESTÁ CONFIRMADO)
         query_grupos = """
             SELECT DISTINCT p.id_pelada, p.nome_jogo, p.nome_arena, p.id_alfa
@@ -2424,6 +2444,7 @@ elif pagina_selecionada == "💬 Chat":
     finally:
         if conn: 
             conn.close()
+            
 
     # Seletor
     selecionado = st.selectbox("📱 Escolha uma conversa:", ["-- Selecione --"] + list(opcoes_chat.keys()))
@@ -2445,8 +2466,43 @@ elif pagina_selecionada == "💬 Chat":
     alfa_id = st.session_state.get("chat_alfa_id", 0)
 
     if cid and nome:
-        st.markdown(f"#### {'🏟️ Grupo' if tipo == 'grupo' else '🗣️ Conversa'}: {nome}")
+        # ATUALIZADO AQUI para incluir o título do Desafio
+        st.markdown(f"#### {'🏟️ Grupo' if tipo == 'grupo' else '⚔️ Desafio & Quadras' if tipo == 'desafio' else '🗣️ Conversa'}: {nome}")
         
+        if tipo == "desafio":
+                    st.info("⚽ Partida aceita! Escolha a região e a quadra para negociar com o oponente:")
+                    conn_q = criar_conexao()
+                    try:
+                        regioes = pd.read_sql("SELECT DISTINCT regiao FROM quadras ORDER BY regiao", conn_q)
+                        if not regioes.empty:
+                            regiao_escolhida = st.selectbox("Selecione a Região:", ["-- Escolha a Região --"] + list(regioes['regiao']))
+                            
+                            if regiao_escolhida != "-- Escolha a Região --":
+                                quadras_regiao = pd.read_sql("SELECT id_quadra, nome_quadra, endereco, contato FROM quadras WHERE regiao = %s", conn_q, params=[regiao_escolhida])
+                                
+                                if not quadras_regiao.empty:
+                                    opcoes_quadras = {f"📍 {q['nome_quadra']} - {q['endereco']} (Contato: {q['contato']})": q for _, q in quadras_regiao.iterrows()}
+                                    quadra_selecionada = st.selectbox("Selecione a Quadra:", ["-- Escolha a Quadra --"] + list(opcoes_quadras.keys()))
+                                    
+                                    if quadra_selecionada != "-- Escolha a Quadra --":
+                                        dados_q = opcoes_quadras[quadra_selecionada]
+                                        if st.button("🏟️ Enviar Quadra para o Chat do Duelo"):
+                                            cursor_envio = conn_q.cursor()
+                                            msg_quadra = f"🏟️ **Quadra Escolhida para o Duelo:**\nNome: {dados_q['nome_quadra']}\nEndereço: {dados_q['endereco']}\nContato: {dados_q['contato']}"
+                                            cursor_envio.execute(
+                                                "INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)",
+                                                (id_usuario_atual, nome_usuario_atual, cid, msg_quadra)
+                                            )
+                                            conn_q.commit()
+                                            cursor_envio.close()
+                                            st.success("Quadra enviada no chat com sucesso!")
+                                            st.rerun()
+                    except Exception as e:
+                        st.warning(f"Módulo de quadras indisponível no momento: {e}")
+                    finally:
+                        if conn_q: conn_q.close()
+                    st.markdown("---")
+
         conn = None
         try:
             conn = criar_conexao()
