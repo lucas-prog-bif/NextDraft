@@ -2396,11 +2396,15 @@ elif pagina_selecionada == "💬 Chat":
 
         # C. DESAFIOS ACEITOS (NOVO)
         query_desafios = """
-            SELECT id_desafio, id_post, username_desafiante, username_desafiado 
-            FROM desafios 
-            WHERE (username_desafiante = %s OR username_desafiado = %s) AND status = 'Aceito'
+            SELECT DISTINCT d.id_desafio, d.id_post, d.username_desafiante, d.username_desafiado 
+            FROM desafios d
+            LEFT JOIN postagens_quadras p ON d.id_post = p.id_post
+            LEFT JOIN quadras q ON (p.nome_arena = q.nome_quadra OR p.endereco_arena = q.endereco)
+            WHERE (d.username_desafiante = %s OR d.username_desafiado = %s OR q.id_usuario_dono = %s) 
+              AND d.status = 'Aceito'
         """
-        df_desafios = pd.read_sql(query_desafios, conn, params=[nome_usuario_atual, nome_usuario_atual])
+        df_desafios = pd.read_sql(query_desafios, conn, params=[nome_usuario_atual, nome_usuario_atual, id_usuario_atual])
+       
         for _, des in df_desafios.iterrows():
             # Descobre quem é o oponente para exibir no nome da conversa
             oponente = des['username_desafiado'] if des['username_desafiante'] == nome_usuario_atual else des['username_desafiante']
