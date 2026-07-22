@@ -2511,7 +2511,13 @@ elif pagina_selecionada == "💬 Chat":
                 query_hist = "SELECT id_envia, nome_envia, mensagem FROM mensagens_chat WHERE id_pelada = %s ORDER BY data_envio ASC"
                 df_chat = pd.read_sql(query_hist, conn, params=[cid])
             else:
-                query_hist = "SELECT id_envia, nome_envia, mensagem FROM mensagens_chat WHERE ((id_envia=%s AND id_recebe=%s) OR (id_envia=%s AND id_recebe=%s)) AND (id_pelada IS NULL OR id_pelada=0) ORDER BY data_envio ASC"
+                query_hist = """
+                    SELECT id_envia, nome_envia, mensagem 
+                    FROM mensagens_chat 
+                    WHERE ((id_envia = %s AND id_recebe = %s) OR (id_envia = %s AND id_recebe = %s)) 
+                      AND (id_pelada IS NULL OR id_pelada = 0) 
+                    ORDER BY data_envio ASC
+                """
                 df_chat = pd.read_sql(query_hist, conn, params=[id_usuario_atual, cid, cid, id_usuario_atual])
             
             with st.container(height=300, border=True):
