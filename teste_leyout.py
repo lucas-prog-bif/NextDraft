@@ -2486,13 +2486,25 @@ elif pagina_selecionada == "💬 Chat":
                                     
                                     if quadra_selecionada != "-- Escolha a Quadra --":
                                         dados_q = opcoes_quadras[quadra_selecionada]
+                                    
+                                        cursor_envio = conn_q.cursor()
+                                        msg_quadra = f"🏟️ **Quadra Escolhida para o Duelo:**\nNome: {dados_q['nome_quadra']}\nEndereço: {dados_q['endereco']}\nContato: {dados_q['contato']}"
                                         if st.button("🏟️ Enviar Quadra para o Chat do Duelo"):
                                             cursor_envio = conn_q.cursor()
                                             msg_quadra = f"🏟️ **Quadra Escolhida para o Duelo:**\nNome: {dados_q['nome_quadra']}\nEndereço: {dados_q['endereco']}\nContato: {dados_q['contato']}"
+                                            cur_op_q = conn_q.cursor()
+                                            cur_op_q.execute("SELECT username_desafiante, username_desafiado FROM desafios WHERE id_desafio = %s", (cid,))
+                                            res_des_q = cur_op_q.fetchone()
+                                            op_user = res_des_q[1] if (res_des_q and res_des_q[0] == nome_usuario_atual) else (res_des_q[0] if res_des_q else cid)
+                                            cur_op_q.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (op_user,))
+                                            res_id_q = cur_op_q.fetchone()
+                                            id_dest_q = res_id_q[0] if res_id_q else cid
+                                            cur_op_q.close()
+                                            
                                             cursor_envio.execute(
-                                                "INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)",
-                                                (id_usuario_atual, nome_usuario_atual, cid, msg_quadra)
-                                            )
+                                        "INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)",
+                                        (id_usuario_atual, nome_usuario_atual, id_dest_q, msg_quadra)
+                                        )    
                                             conn_q.commit()
                                             cursor_envio.close()
                                             st.success("Quadra enviada no chat com sucesso!")
