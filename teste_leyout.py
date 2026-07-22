@@ -1751,6 +1751,7 @@ if pagina_selecionada == "🏠 Home":
                     """, unsafe_allow_html=True)
 
 
+                    
                     # --- 3. CONTEÚDO DE MÍDIA MID-CARD ---
                     if pd.notnull(post['url_midia']) and post['url_midia'].strip() != "":
                         pasta_do_script = os.path.dirname(os.path.abspath(__file__))
@@ -1773,13 +1774,12 @@ if pagina_selecionada == "🏠 Home":
                             st.video(caminho_completo)
 
                         # 3. Verifica se é um link
-                        # 3. Verifica se é um link
                         elif 'link' in tipo_limpo or '🔗' in tipo_limpo:
                             st.markdown(f"🔗 <a href='{post['url_midia']}' target='_blank' style='color: #10b981; font-weight: bold; text-decoration: none;'>Acessar Link Externo</a>", unsafe_allow_html=True)
                             
-                                
-                                
-                                
+                    # --- 4. BOTÕES DA BASE (Curtir, Desafiar, Comentários) ---
+                    st.markdown('<div class="botoes-base-container">', unsafe_allow_html=True)
+                    
                     # Botão Curtir
                     cursor = conn.cursor()
                     cursor.execute("SELECT 1 FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
@@ -1799,6 +1799,7 @@ if pagina_selecionada == "🏠 Home":
                         cursor.close()
                         st.rerun()
 
+                    # Botão Desafiar (Aparece apenas se não for o autor do post)
                     if post['username_autor'] != usuario_atual:
                         if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{post['id_post']}", use_container_width=True):
                             st.info("Funcionalidade de desafio em breve!")    
@@ -1809,7 +1810,7 @@ if pagina_selecionada == "🏠 Home":
                         st.session_state[f"ver_comentarios_{col_id}"] = not st.session_state.get(f"ver_comentarios_{col_id}", False)
                         st.rerun()
                         
-                    st.markdown('</div>', unsafe_allow_html=True) # Fecha a div dos botões colados
+                    st.markdown('</div>', unsafe_allow_html=True) # Fecha a div dos botões colados # Fecha a div dos botões colados
 
                         
                                 
