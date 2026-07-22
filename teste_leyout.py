@@ -2505,8 +2505,10 @@ elif pagina_selecionada == "💬 Chat":
 
         conn = None
         try:
+
             conn = criar_conexao()
-            # Carregar histórico
+
+            id_destinatario = cid
             if tipo == "grupo":
                 query_hist = "SELECT id_envia, nome_envia, mensagem FROM mensagens_chat WHERE id_pelada = %s ORDER BY data_envio ASC"
                 df_chat = pd.read_sql(query_hist, conn, params=[cid])
@@ -2538,6 +2540,7 @@ elif pagina_selecionada == "💬 Chat":
                 if tipo == "grupo":
                     cursor.execute("INSERT INTO mensagens_chat (id_envia, nome_envia, id_pelada, id_recebe, mensagem) VALUES (%s, %s, %s, 0, %s)", (id_usuario_atual, nome_usuario_atual, cid, resposta))
                 else:
+                    dest_envio = id_destinatario if tipo == "desafio" else cid
                     cursor.execute("INSERT INTO mensagens_chat (id_envia, nome_envia, id_recebe, id_pelada, mensagem) VALUES (%s, %s, %s, 0, %s)", (id_usuario_atual, nome_usuario_atual, cid, resposta))
                 conn.commit()
                 st.rerun()
