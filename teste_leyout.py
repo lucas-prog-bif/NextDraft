@@ -1230,15 +1230,55 @@ def abrir_story_parceiro(nome_parceiro):
 
 def exibir_aba_notificacoes():
     st.markdown("### 🔔 Suas Notificações")
-    st.caption("Fique por dentro de quem te mandou mensagem, curtiu ou comentou nas suas publicações.")
+    st.caption("Fique por dentro de quem te mandou mensagem, curtiu, comentou ou te desafiou.")
     
+    # Atenção: No seu código de posts, você usava st.session_state["usuario_nome"] (string). 
+    # Certifique-se de qual chave você usa para o nome de usuário (string) ou ID (inteiro).
+    # Como os desafios usam string (username), vamos usar o nome do usuário:
+    usuario_atual = st.session_state.get("usuario_nome")
     id_usuario_atual = st.session_state.get("usuario_id")
     
     conn = None
     try:
         conn = criar_conexao()
         
-        # 1. BUSCA AS NOTIFICAÇÕES REAIS DO USUÁRIO LOGADO
+        # --- 1. EXIBIR DESAFIOS PENDENTES (NOVO) ---
+        if usuario_atual:
+            cursor_d = conn.cursor()
+            cursor_d.execute(
+                "SELECT id_desafio, id_post, username_desafiante, data_criacao FROM desafios WHERE username_desafiado = %s AND status = 'Pendente' ORDER BY id_desafio DESC",
+                (usuario_atual,)
+            )
+            desafios_recebidos = cursor_d.fetchall()
+            cursor_d.close()
+
+            if desafios_recebidos:
+                st.markdown("#### ⚔️ Desafios Pendentes")
+                for id_desafio, id_post, desafiante, data_criacao in desafios_recebidos:
+                    with st.container(border=True):
+                        st.markdown(f"**@{desafiante}** te desafiou para um duelo (Post #{id_post})!")
+                        
+                        col_aceitar, col_recusar = st.columns(2)
+                        with col_aceitar:
+                            if st.button("✅ Aceitar", key=f"aceitar_{id_desafio}", use_container_width=True):
+                                c_acao = conn.cursor()
+                                c_acao.execute("UPDATE desafios SET status = 'Aceito' WHERE id_desafio = %s", (id_desafio,))
+                                conn.commit()
+                                c_acao.close()
+                                st.success(f"Você aceitou o desafio de @{desafiante}!")
+                                st.rerun()
+                                
+                        with col_recusar:
+                            if st.button("❌ Recusar", key=f"recusar_{id_desafio}", use_container_width=True):
+                                c_acao = conn.cursor()
+                                c_acao.execute("UPDATE desafios SET status = 'Recusado' WHERE id_desafio = %s", (id_desafio,))
+                                conn.commit()
+                                c_acao.close()
+                                st.warning("Desafio recusado.")
+                                st.rerun()
+                st.markdown("<hr>", unsafe_allow_html=True)
+
+        # --- 2. BUSCA AS NOTIFICAÇÕES REAIS DO USUÁRIO LOGADO (SEU CÓDIGO ORIGINAL) ---
         query = """
             SELECT id_notificacao, mensagem, lida, data_envio 
             FROM notificacoes 
@@ -1248,29 +1288,31 @@ def exibir_aba_notificacoes():
         """
         df_notifs = pd.read_sql(query, conn, params=[id_usuario_atual])
         
-        # 2. SE HOUVER NOTIFICAÇÕES, EXIBE NA TELA DO CELULAR
+        # --- 3. SE HOUVER NOTIFICAÇÕES, EXIBE NA TELA ---
         if not df_notifs.empty:
+            st.markdown("#### 📌 Outras Notificações")
             for _, notif in df_notifs.iterrows():
-                # Se lida for False (0), coloca a bolinha azul do Instagram de "Nova"
                 status_lida = "🔵 " if not notif['lida'] else "   "
                 
-                # Renderiza a linha com espaçamento limpo para o polegar
+                # Tratamento seguro caso data_envio venha nula do banco
+                data_formatada = notif['data_envio'].strftime('%d/%m às %H:%M') if pd.notnull(notif['data_envio']) else ""
+                
                 st.markdown(
                     f"<div style='padding: 10px 0; border-bottom: 1px solid #222;'>"
                     f"{status_lida} {notif['mensagem']} "
-                    f"<br><small style='color: #8e8e8e; margin-left: 25px;'>{notif['data_envio'].strftime('%d/%m às %H:%M')}</small>"
+                    f"<br><small style='color: #8e8e8e; margin-left: 25px;'>{data_formatada}</small>"
                     f"</div>", 
                     unsafe_allow_html=True
                 )
             
-            # 3. MARCA TODAS AS NOTIFICAÇÕES DESSE USUÁRIO COMO LIDAS AUTOMATICAMENTE
+            # Marca as notificações comuns como lidas
             cursor = conn.cursor()
             cursor.execute("UPDATE notificacoes SET lida = TRUE WHERE id_usuario_destino = %s", (id_usuario_atual,))
             conn.commit()
             cursor.close()
             
-        else:
-            st.info("Você está atualizado! Nenhuma nova notificação por aqui.")
+        elif not desafios_recebidos:
+            st.info("Você está atualizado! Nenhuma nova notificação ou desafio por aqui.")
             
     except Exception as e:
         st.error(f"Erro ao carregar suas notificações: {e}")
@@ -1288,7 +1330,9 @@ def registrar_notificacao(id_destino, mensagem):
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Erro ao registrar notificação: {e}")            
+        print(f"Erro ao registrar notificação: {e}")
+        
+                    
 
 def verificar_acesso_quadra(id_quadra):
     conn = criar_conexao()
@@ -1788,8 +1832,7 @@ if pagina_selecionada == "🏠 Home":
                         c_aux.close()
                         st.rerun()
 
-                    # Desafiar (Apenas para outros usuários)
-                    #if post['username_autor'] != usuario_atual:
+                   
                     # Desafiar Boleiro
                     if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{col_id}", use_container_width=True):
                         # Evita que o usuário desafie a si mesmo (caso queira manter essa regra para o clique)
@@ -1815,6 +1858,15 @@ if pagina_selecionada == "🏠 Home":
                                     conn.commit()
                                     st.success(f"Desafio enviado para @{post['username_autor']} com sucesso!")
                                 
+                                    c_desafio.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (post['username_autor'],))
+                                    resultado_id = c_desafio.fetchone()
+                                    if resultado_id:
+                                        id_desafiado = resultado_id[0]
+                                        registrar_notificacao(id_desafiado, f"@{usuario_atual} te desafiou para um duelo na publicação #{col_id}!")
+                                    # ----------------------------------
+
+                                    st.success(f"Desafio enviado para @{post['username_autor']} com sucesso!")
+
                                 c_desafio.close()
                             except Exception as e:
                                 st.error(f"Erro ao enviar desafio: {e}")    
