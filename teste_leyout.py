@@ -1773,11 +1773,13 @@ if pagina_selecionada == "🏠 Home":
                             st.video(caminho_completo)
 
                         # 3. Verifica se é um link
+                        # 3. Verifica se é um link
                         elif 'link' in tipo_limpo or '🔗' in tipo_limpo:
                             st.markdown(f"🔗 <a href='{post['url_midia']}' target='_blank' style='color: #10b981; font-weight: bold; text-decoration: none;'>Acessar Link Externo</a>", unsafe_allow_html=True)
-                                            
-
-                                        
+                            
+                                
+                                
+                                
                     # Botão Curtir
                     cursor = conn.cursor()
                     cursor.execute("SELECT 1 FROM curtidas_posts WHERE id_post = %s AND username = %s", (col_id, usuario_atual))
@@ -1808,36 +1810,6 @@ if pagina_selecionada == "🏠 Home":
                         st.rerun()
                         
                     st.markdown('</div>', unsafe_allow_html=True) # Fecha a div dos botões colados
-                            
-                    # --- 5. ÁREA DE COMENTÁRIOS EXPANSÍVEL ---
-                    if st.session_state.get(f"ver_comentarios_{col_id}", False):
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        
-                        novo_comentario = st.text_input("Escreva um comentário...", key=f"input_coment_{col_id}", label_visibility="collapsed", placeholder="Escreva um comentário...")
-                        if st.button("Enviar", key=f"envia_coment_{col_id}", use_container_width=True):
-                            if novo_comentario.strip():
-                                cursor = conn.cursor()
-                                cursor.execute("INSERT INTO comentarios (id_post, username_autor, texto) VALUES (%s, %s, %s)", 
-                                            (col_id, usuario_atual, novo_comentario.strip()))
-                                conn.commit()
-                                cursor.close()
-                                st.rerun()
-                                    
-                        df_comentarios = pd.read_sql("SELECT username_autor, texto FROM comentarios WHERE id_post = %s ORDER BY id_comentario DESC", conn, params=[col_id])
-                                    
-                        if df_comentarios.empty:
-                            st.caption("Nenhum comentário ainda. Comece a conversa!")
-                        else:
-                            for _, com in df_comentarios.iterrows():
-                                st.markdown(
-                                    f"""
-                                    <div style="background-color: #0f172a; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1e293b; word-wrap: break-word;">
-                                        <strong style="color: #10b981; font-size: 13px;">@{com['username_autor']}</strong>
-                                        <p style="color: #cbd5e1; font-size: 13px; margin: 4px 0 0 0;">{com['texto']}</p>
-                                    </div>
-                                    """, 
-                                    unsafe_allow_html=True
-                                )
 
                         
                                 
