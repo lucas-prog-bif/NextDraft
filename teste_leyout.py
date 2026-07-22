@@ -1267,6 +1267,26 @@ def exibir_aba_notificacoes():
                                 c_acao.close()
                                 st.success(f"Você aceitou o desafio de @{desafiante}!")
                                 st.rerun()
+
+                        with col_aceitar:
+                            if st.button("✅ Aceitar", key=f"aceitar_{id_desafio}", use_container_width=True):
+                                c_acao = conn.cursor()
+                                
+                                # 1. Atualiza o status para Aceito
+                                c_acao.execute("UPDATE desafios SET status = 'Aceito' WHERE id_desafio = %s", (id_desafio,))
+                                
+                                # 2. Busca o ID do desafiante para avisar que ele aceitou
+                                c_acao.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (desafiante,))
+                                res_desafiante = c_acao.fetchone()
+                                
+                                if res_desafiante:
+                                    id_desafiante = res_desafiante[0]
+                                    registrar_notificacao(id_desafiante, f"@{usuario_atual} aceitou o seu desafio! ⚔️")
+                                    
+                                conn.commit()
+                                c_acao.close()
+                                st.success(f"Você aceitou o desafio de @{desafiante}!")
+                                st.rerun()        
                                 
                         with col_recusar:
                             if st.button("❌ Recusar", key=f"recusar_{id_desafio}", use_container_width=True):
@@ -1283,6 +1303,7 @@ def exibir_aba_notificacoes():
                                 st.warning("Desafio recusado.")
                                 st.rerun()
                 st.markdown("<hr>", unsafe_allow_html=True)
+
 
         # --- 2. BUSCA AS NOTIFICAÇÕES REAIS DO USUÁRIO LOGADO (SEU CÓDIGO ORIGINAL) ---
         query = """
