@@ -1790,8 +1790,34 @@ if pagina_selecionada == "🏠 Home":
 
                     # Desafiar (Apenas para outros usuários)
                     #if post['username_autor'] != usuario_atual:
+                    # Desafiar Boleiro
                     if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{col_id}", use_container_width=True):
-                        st.info("Funcionalidade de desafio em breve!")    
+                        # Evita que o usuário desafie a si mesmo (caso queira manter essa regra para o clique)
+                        if usuario_atual == post['username_autor']:
+                            st.warning("Você não pode desafiar a si mesmo!")
+                        else:
+                            try:
+                                c_desafio = conn.cursor()
+                                # Verifica se já existe um desafio pendente para o mesmo post/usuário
+                                c_desafio.execute(
+                                    "SELECT 1 FROM desafios WHERE id_post = %s AND username_desafiante = %s AND username_desafiado = %s AND status = 'Pendente'",
+                                    (col_id, usuario_atual, post['username_autor'])
+                                )
+                                ja_desafiou = c_desafio.fetchone() is not None
+
+                                if ja_desafiou:
+                                    st.warning("Você já enviou um desafio pendente para este usuário neste post!")
+                                else:
+                                    c_desafio.execute(
+                                        "INSERT INTO desafios (id_post, username_desafiante, username_desafiado, status) VALUES (%s, %s, %s, 'Pendente')",
+                                        (col_id, usuario_atual, post['username_autor'])
+                                    )
+                                    conn.commit()
+                                    st.success(f"Desafio enviado para @{post['username_autor']} com sucesso!")
+                                
+                                c_desafio.close()
+                            except Exception as e:
+                                st.error(f"Erro ao enviar desafio: {e}")    
                     
                     # Comentários (Botão para abrir/fechar)
                     key_comentarios = f"ver_comentarios_{col_id}"
