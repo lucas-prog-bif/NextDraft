@@ -1790,8 +1790,8 @@ if pagina_selecionada == "🏠 Home":
 
                     # Desafiar (Apenas para outros usuários)
                     #if post['username_autor'] != usuario_atual:
-                        if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{col_id}", use_container_width=True):
-                            st.info("Funcionalidade de desafio em breve!")    
+                    if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{col_id}", use_container_width=True):
+                        st.info("Funcionalidade de desafio em breve!")    
                     
                     # Comentários (Botão para abrir/fechar)
                     key_comentarios = f"ver_comentarios_{col_id}"
