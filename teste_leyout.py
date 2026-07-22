@@ -1272,6 +1272,12 @@ def exibir_aba_notificacoes():
                             if st.button("❌ Recusar", key=f"recusar_{id_desafio}", use_container_width=True):
                                 c_acao = conn.cursor()
                                 c_acao.execute("UPDATE desafios SET status = 'Recusado' WHERE id_desafio = %s", (id_desafio,))
+                                c_acao.execute("SELECT id_usuario FROM usuarios WHERE username = %s", (desafiante,))
+                                res_desafiante = c_acao.fetchone()
+                                
+                                if res_desafiante:
+                                    id_desafiante = res_desafiante[0]
+                                    registrar_notificacao(id_desafiante, f"@{usuario_atual} recusou o seu desafio.")
                                 conn.commit()
                                 c_acao.close()
                                 st.warning("Desafio recusado.")
