@@ -152,8 +152,7 @@ def recriar_estrutura():
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
 
-    # Coloque aqui os comandos CREATE TABLE que funcionam no Postgres
-    # (Você pode pegar os do seu arquivo .sql e apenas ajustar tipos como 'INT' para 'INTEGER')
+
     comandos_sql = """
     CREATE TABLE  IF NOT EXISTS usuarios (
     id_usuario serial PRIMARY KEY,
@@ -1701,6 +1700,8 @@ if pagina_selecionada == "🏠 Home":
         else:
             for _, post in df_posts.iterrows():
 
+                id_usuario_atual = int(st.session_state.get("usuario_id", 0))
+
 
                 with st.container(border=True):
                     col_id = post['id_post']
@@ -1795,6 +1796,10 @@ if pagina_selecionada == "🏠 Home":
                         conn.commit()
                         cursor.close()
                         st.rerun()
+
+                    if int(post['id_usuario']) != id_usuario_atual:
+                        if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{post['id_post']}", use_container_width=True):
+                            st.info("Funcionalidade de desafio em breve!")    
                     
                     # Botão Comentários
                     texto_coment_botao = "💬 Comentários" if not st.session_state.get(f"ver_comentarios_{col_id}", False) else "🔼 Ocultar"
