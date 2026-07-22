@@ -1797,7 +1797,7 @@ if pagina_selecionada == "🏠 Home":
                         cursor.close()
                         st.rerun()
 
-                    if int(post['id_usuario']) != id_usuario_atual:
+                    if int(post['username_autor']) != id_usuario_atual:
                         if st.button("⚔️ Desafiar Boleiro", key=f"btn_desafio_{post['id_post']}", use_container_width=True):
                             st.info("Funcionalidade de desafio em breve!")    
                     
