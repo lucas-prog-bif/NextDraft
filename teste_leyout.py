@@ -896,7 +896,7 @@ def exibir_aba_boleiros():
             data_hora = st.date_input("Dia do Jogo")
             max_jogadores = st.number_input("Jogadores de linha por time (Ex: 5 para Society padrão)", min_value=3, max_value=11, value=5)
             valor_pix = st.number_input("Valor da vaquinha por jogador (R$)", min_value=0.0, value=15.00)
-            chave_pix = st.text_input("Chave PIX do Organizador Alfa (para receber a taxa)", placeholder="Ex: celular, e-mail ou aleatória")
+            
             
             botao_criar = st.form_submit_button("🚀 Criar Pelada e Abrir Campinho")
             
