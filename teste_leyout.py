@@ -2164,7 +2164,7 @@ elif pagina_selecionada == "🔍 Buscar":
             except Exception as e:
                 st.error(f"Erro ao buscar atletas: {e}")
             finally:
-                if conn and conn.is_connected():
+                if conn:
                     conn.close()
 
     # ==========================================================
