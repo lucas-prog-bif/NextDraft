@@ -1988,8 +1988,9 @@ elif pagina_selecionada == "🛠️ Painel Admin":
             
             with st.form("form_anunciante"):
                 nome = st.text_input("Nome da Empresa")
-                logo_url = st.text_input("URL do Logo (Imagem redonda)")
-                img_story = st.text_input("URL da Imagem do Anúncio")
+                # Permite carregar do celular (galeria) ou PC (arquivos)
+                arquivo_logo = st.file_uploader("Logo da Empresa (Imagem redonda)", type=["png", "jpg", "jpeg"], key="logo_anunciante")
+                arquivo_anuncio = st.file_uploader("Imagem do Anúncio", type=["png", "jpg", "jpeg"], key="banner_anunciante")
                 texto = st.text_area("Texto Promocional")
                 link = st.text_input("Link do WhatsApp (ex: https://wa.me/...)")
                 semanas = st.number_input("Duração (Semanas)", min_value=1, max_value=4, value=1)
