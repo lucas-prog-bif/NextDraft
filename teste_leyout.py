@@ -1998,12 +1998,51 @@ elif pagina_selecionada == "🛠️ Painel Admin":
                 btn_enviar = st.form_submit_button("Cadastrar Anunciante")
                 
                 if btn_enviar:
-                    # Lógica para salvar no banco (ajuste conforme seu banco)
-                    # A data_vencimento agora é calculada: hoje + (semanas * 7 dias)
-                    data_venc = (datetime.now() + timedelta(weeks=semanas)).strftime('%Y-%m-%d')
-                    
-                    # Aqui entraria seu cursor.execute com os dados...
-                    st.success(f"Anunciante {nome} cadastrado até {data_venc}!")
+                    if not nome:
+                        st.error("Por favor, preencha o nome da empresa.")
+                    else:
+                        # 1. Tratamento e salvamento das imagens enviadas
+                        import os
+                        os.makedirs("uploads", exist_ok=True)
+                        
+                        logo_path = ""
+                        if arquivo_logo is not None:
+                            logo_path = os.path.join("uploads", arquivo_logo.name)
+                            with open(logo_path, "wb") as f:
+                                f.write(arquivo_logo.getbuffer())
+                                
+                        anuncio_path = ""
+                        if arquivo_anuncio is not None:
+                            anuncio_path = os.path.join("uploads", arquivo_anuncio.name)
+                            with open(anuncio_path, "wb") as f:
+                                f.write(arquivo_anuncio.getbuffer())
+
+                        # 2. Cálculo da data de vencimento
+                        data_venc = (datetime.now() + timedelta(weeks=semanas)).strftime('%Y-%m-%d')
+                        
+                        # 3. Inserção no banco de dados
+                        conn_admin = None
+                        try:
+                            conn_admin = criar_conexao()
+                            cursor = conn_admin.cursor()
+                            
+                            # ATENÇÃO: Verifique se o nome da sua tabela no banco é 'anunciantes' 
+                            # e se as colunas batem exatamente com esses nomes:
+                            query_insert = """
+                                INSERT INTO anunciantes (nome_empresa, logo_url, imagem_anuncio_url, texto_promocional, link_whatsapp, data_vencimento) 
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """
+                            cursor.execute(query_insert, (nome, logo_path, anuncio_path, texto, link, data_venc))
+                            conn_admin.commit()
+                            cursor.close()
+                            
+                            st.success(f"Anunciante {nome} cadastrado com sucesso até {data_venc}!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar anunciante no banco: {e}")
+                        finally:
+                            if conn_admin and conn_admin.is_connected():
+                                conn_admin.close()
             
         with tab2:
             st.subheader("Gestão de Donos de Quadra")
