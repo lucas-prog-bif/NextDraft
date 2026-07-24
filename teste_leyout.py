@@ -2001,47 +2001,48 @@ elif pagina_selecionada == "🛠️ Painel Admin":
                     if not nome:
                         st.error("Por favor, preencha o nome da empresa.")
                     else:
-                        # 1. Tratamento e salvamento das imagens enviadas
                         import os
-                        os.makedirs("uploads", exist_ok=True)
+                        os.makedirs("media", exist_ok=True)
                         
-                        logo_path = ""
+                        # Salvando a logo na pasta 'media' que a Home lê
+                        logo_filename = ""
                         if arquivo_logo is not None:
-                            logo_path = os.path.join("uploads", arquivo_logo.name)
+                            logo_filename = arquivo_logo.name
+                            logo_path = os.path.join("media", logo_filename)
                             with open(logo_path, "wb") as f:
                                 f.write(arquivo_logo.getbuffer())
                                 
-                        anuncio_path = ""
+                        # Salvando a imagem do anúncio
+                        anuncio_filename = ""
                         if arquivo_anuncio is not None:
-                            anuncio_path = os.path.join("uploads", arquivo_anuncio.name)
+                            anuncio_filename = arquivo_anuncio.name
+                            anuncio_path = os.path.join("media", anuncio_filename)
                             with open(anuncio_path, "wb") as f:
                                 f.write(arquivo_anuncio.getbuffer())
 
-                        # 2. Cálculo da data de vencimento
                         data_venc = (datetime.now() + timedelta(weeks=semanas)).strftime('%Y-%m-%d')
                         
-                        # 3. Inserção no banco de dados
                         conn_admin = None
                         try:
                             conn_admin = criar_conexao()
                             cursor = conn_admin.cursor()
                             
-                            # ATENÇÃO: Verifique se o nome da sua tabela no banco é 'anunciantes' 
-                            # e se as colunas batem exatamente com esses nomes:
+                            # GRAVANDO EXATAMENTE NAS COLUNAS QUE A HOME ESPERA:
                             query_insert = """
-                                INSERT INTO anunciantes (nome_empresa, logo_url, imagem_anuncio_url, texto_promocional, link_whatsapp, data_vencimento) 
-                                VALUES (%s, %s, %s, %s, %s, %s)
+                                INSERT INTO stories_parceiros 
+                                (nome_parceiro, url_logo, imagem_story, texto_story, link_cupom, status_anuncio, data_vencimento) 
+                                VALUES (%s, %s, %s, %s, %s, 'ativo', %s)
                             """
-                            cursor.execute(query_insert, (nome, logo_path, anuncio_path, texto, link, data_venc))
+                            cursor.execute(query_insert, (nome, logo_filename, anuncio_path, texto, link, data_venc))
                             conn_admin.commit()
                             cursor.close()
                             
-                            st.success(f"Anunciante {nome} cadastrado com sucesso até {data_venc}!")
+                            st.success(f"Anunciante {nome} cadastrado com sucesso e já visível na Home!")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Erro ao salvar anunciante no banco: {e}")
                         finally:
-                            if conn_admin and conn_admin.is_connected():
+                            if conn_admin and conn_admin.closed == 0:
                                 conn_admin.close()
             
         with tab2:
