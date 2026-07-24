@@ -1986,9 +1986,9 @@ elif pagina_selecionada == "🛠️ Painel Admin":
         with tab1:
             st.subheader("🚀 Gestão de Anunciantes")
             
+            # 1. Formulário de Cadastro (o que você já tem)
             with st.form("form_anunciante"):
                 nome = st.text_input("Nome da Empresa")
-                # Permite carregar do celular (galeria) ou PC (arquivos)
                 arquivo_logo = st.file_uploader("Logo da Empresa (Imagem redonda)", type=["png", "jpg", "jpeg"], key="logo_anunciante")
                 arquivo_anuncio = st.file_uploader("Imagem do Anúncio", type=["png", "jpg", "jpeg"], key="banner_anunciante")
                 texto = st.text_area("Texto Promocional")
@@ -2004,20 +2004,16 @@ elif pagina_selecionada == "🛠️ Painel Admin":
                         import os
                         os.makedirs("media", exist_ok=True)
                         
-                        # Salvando a logo na pasta 'media' que a Home lê
                         logo_filename = ""
                         if arquivo_logo is not None:
                             logo_filename = arquivo_logo.name
-                            logo_path = os.path.join("media", logo_filename)
-                            with open(logo_path, "wb") as f:
+                            with open(os.path.join("media", logo_filename), "wb") as f:
                                 f.write(arquivo_logo.getbuffer())
                                 
-                        # Salvando a imagem do anúncio
                         anuncio_filename = ""
                         if arquivo_anuncio is not None:
                             anuncio_filename = arquivo_anuncio.name
-                            anuncio_path = os.path.join("media", anuncio_filename)
-                            with open(anuncio_path, "wb") as f:
+                            with open(os.path.join("media", anuncio_filename), "wb") as f:
                                 f.write(arquivo_anuncio.getbuffer())
 
                         data_venc = (datetime.now() + timedelta(weeks=semanas)).strftime('%Y-%m-%d')
@@ -2026,27 +2022,57 @@ elif pagina_selecionada == "🛠️ Painel Admin":
                         try:
                             conn_admin = criar_conexao()
                             cursor = conn_admin.cursor()
-                            
-                            # GRAVANDO EXATAMENTE NAS COLUNAS QUE A HOME ESPERA:
                             query_insert = """
                                 INSERT INTO stories_parceiros 
                                 (nome_parceiro, url_logo, imagem_story, texto_story, link_cupom, status_anuncio, data_vencimento) 
                                 VALUES (%s, %s, %s, %s, %s, 'ativo', %s)
                             """
-                            cursor.execute(query_insert, (nome, logo_filename, anuncio_path, texto, link, data_venc))
+                            cursor.execute(query_insert, (nome, logo_filename, anuncio_filename, texto, link, data_venc))
                             conn_admin.commit()
                             cursor.close()
-                            
-                            st.success(f"Anunciante {nome} cadastrado com sucesso e já visível na Home!")
+                            st.success(f"Anunciante {nome} cadastrado com sucesso!")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Erro ao salvar anunciante no banco: {e}")
                         finally:
                             if conn_admin and conn_admin.closed == 0:
                                 conn_admin.close()
-            
+
+            st.markdown("---")
+            st.subheader("📋 Anunciantes Ativos / Cadastrados")
+
+            # 2. Listagem e Botão de Exclusão (igualzinho à sua aba de quadras)
+            try:
+                conn_list = criar_conexao()
+                cursor_list = conn_list.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                cursor_list.execute("SELECT id_story, nome_parceiro, data_vencimento, status_anuncio FROM stories_parceiros")
+                anunciantes = cursor_list.fetchall()
+                
+                if not anunciantes:
+                    st.info("Nenhum anunciante cadastrado no momento.")
+                else:
+                    for an in anunciantes:
+                        col_info1, col_info2, col_btn = st.columns([3, 2, 1])
+                        col_info1.write(f"**{an['nome_parceiro']}**")
+                        col_info2.write(f"Vence: {an['data_vencimento']} | Status: {an['status_anuncio']}")
+                        
+                        if col_btn.button("🗑️ Excluir", key=f"del_an_{an['id_story']}"):
+                            cursor_list.execute("DELETE FROM stories_parceiros WHERE id_story = %s", (an['id_story'],))
+                            conn_list.commit()
+                            st.success(f"Anunciante {an['nome_parceiro']} removido com sucesso!")
+                            st.rerun()
+                            
+                cursor_list.close()
+                conn_list.close()
+            except Exception as e:
+                st.error(f"Erro ao carregar lista de anunciantes: {e}")
+
+
+
         with tab2:
             st.subheader("Gestão de Donos de Quadra")
+            
+            
             # Aqui vai a lista de quadras com a lógica de 30 dias
             # Colocaremos o botão de liberar que criamos
             
